@@ -19,9 +19,24 @@ android {
     }
 }
 
+ext {
+    supportLibVersion = '23.4.0'
+    playLibVersion = '9.0.1'
+    observableVersion = '1.6.0'
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:design:23.4.0'
+    compile "com.google.android.gms:play-services-auth:${playLibVersion}"
+    compile "com.google.android.gms:play-services-appindexing:${playLibVersion}"
+    compile "com.android.support:design:${supportLibVersion}"
+    compile "com.android.support:appcompat-v7:${supportLibVersion}"
+    compile "com.android.support:support-v4:${supportLibVersion}"
+    compile "com.android.support:percent:${supportLibVersion}"
+    compile "com.android.support:cardview-v7:${supportLibVersion}"
+    compile "com.github.ksoichiro:android-observablescrollview:${observableVersion}"
+    compile 'com.mcxiaoke.volley:library:1.0.19'
 }
+
+//apply plugin: 'com.google.gms.google-services'
