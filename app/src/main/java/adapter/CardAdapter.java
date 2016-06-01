@@ -16,35 +16,55 @@ import data.Card;
 /**
  * Created by zyuki on 6/1/2016.
  */
-public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder> {
+public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int VIEW_TYPE_HEADER = 0;
+    private static final int VIEW_TYPE_ITEM = 1;
+
     private List<Card> cardsList;
+    private View header;
 
-    public CardAdapter(List<Card> cardsList) {
+    public CardAdapter(List<Card> cardsList, View header) {
         this.cardsList = cardsList;
+        this.header = header;
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        int layoutRes = R.layout.card;
-        View card = LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false);
-
-        return new ViewHolder(card);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if(viewType == VIEW_TYPE_HEADER) {
+            return new HeaderViewHolder(header);
+        } else {
+            int layoutRes = R.layout.card;
+            return new ItemViewHolder(
+                    LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false)
+            );
+        }
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.image.setImageResource(cardsList.get(position).getDrawableRes());
-        holder.cardText.setText(cardsList.get(position).getCardText());
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+        if(viewHolder instanceof ItemViewHolder) {
+            ((ItemViewHolder)viewHolder).image.setImageResource(cardsList.get(position).getDrawableRes());
+            ((ItemViewHolder)viewHolder).cardText.setText(cardsList.get(position).getCardText());
+        }
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return (position == 0) ? VIEW_TYPE_HEADER : VIEW_TYPE_ITEM;
     }
 
     @Override
     public int getItemCount() {return cardsList.size();}
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
+        public HeaderViewHolder(View view) {super(view);}
+    }
+
+    public static class ItemViewHolder extends RecyclerView.ViewHolder {
         public ImageView image;
         public TextView cardText;
 
-        public ViewHolder(View card) {
+        public ItemViewHolder(View card) {
             super(card);
 
             image = (ImageView)card.findViewById(R.id.card_img_cardImg);
