@@ -26,6 +26,8 @@ public class ContentDisplayActivity extends AppCompatActivity implements BaseFra
 
         fragName = getIntent().getExtras().getString("frag_name");
 
+        setTitle(fragName);
+
         FragmentTransaction fragTrans = getSupportFragmentManager().beginTransaction();
         fragTrans.replace(R.id.content_fragment, getFragment(fragName), fragName);
         fragTrans.commit();
