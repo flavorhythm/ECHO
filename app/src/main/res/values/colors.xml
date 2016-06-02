@@ -3,4 +3,10 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="echo_orange">#EC5123</color>
+    <color name="washed_echo">#79EC5123</color>
+    <color name="shindaiwa_red">#C8102E</color>
+    <color name="bg_color">#433513</color>
+    <color name="white">#FFFFFF</color>
+    <color name="item_pressed">#263238</color>
 </resources>

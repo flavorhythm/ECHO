@@ -5,4 +5,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string name="slide_menu_docs">Documentation</string>
+    <string name="slide_menu_maintenance">Maintenance</string>
+    <string name="slide_menu_specs">Unit Specs</string>
+    <string name="slide_menu_guide">Beginner\'s Guide</string>
+    <string name="slide_menu_locator">Dealer Locator</string>
+    <string name="slide_menu_settings">App Settings</string>
 </resources>
