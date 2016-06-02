@@ -1,36 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/slide_docs"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="@string/slide_menu_docs" />
-        <item
-            android:id="@+id/slide_maintenace"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/slide_menu_maintenance" />
-        <item
-            android:id="@+id/slide_specs"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/slide_menu_specs" />
-        <item
-            android:id="@+id/slide_guide"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="@string/slide_menu_guide" />
-    </group>
-
-    <item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/slide_locator"
-                android:icon="@drawable/ic_menu_share"
-                android:title="@string/slide_menu_locator" />
-            <item
-                android:id="@+id/slide_settings"
-                android:icon="@drawable/ic_menu_send"
-                android:title="@string/slide_menu_settings" />
-        </menu>
-    </item>
-
+    <item
+        android:id="@+id/slide_docs"
+        android:icon="@drawable/ic_menu_camera"
+        android:title="@string/slide_menu_docs" />
+    <item
+        android:id="@+id/slide_maintenace"
+        android:icon="@drawable/ic_menu_gallery"
+        android:title="@string/slide_menu_maintenance" />
+    <item
+        android:id="@+id/slide_specs"
+        android:icon="@drawable/ic_menu_slideshow"
+        android:title="@string/slide_menu_specs" />
+    <item
+        android:id="@+id/slide_guide"
+        android:icon="@drawable/ic_menu_manage"
+        android:title="@string/slide_menu_guide" />
+    <item
+        android:id="@+id/slide_locator"
+        android:icon="@drawable/ic_menu_share"
+        android:title="@string/slide_menu_locator" />
+    <item
+        android:id="@+id/slide_settings"
+        android:icon="@drawable/ic_menu_send"
+        android:title="@string/slide_menu_settings" />
 </menu>
