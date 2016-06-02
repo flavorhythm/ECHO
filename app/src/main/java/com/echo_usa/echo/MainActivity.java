@@ -1,6 +1,7 @@
 package com.echo_usa.echo;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.os.Build;
@@ -32,7 +33,8 @@ import adapter.CardAdapter;
 import data.DataAccessObject;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, ObservableScrollViewCallbacks {
+        implements NavigationView.OnNavigationItemSelectedListener, ObservableScrollViewCallbacks,
+        DrawerLayout.DrawerListener {
 
     private static final float MAX_TEXT_SCALE_DELTA = 0.3f;
 
@@ -43,10 +45,13 @@ public class MainActivity extends AppCompatActivity
     private int mActionBarSize;
     private int mFlexibleSpaceImageHeight;
 
+    private MenuItem menuItem;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -64,7 +69,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
+        drawer.addDrawerListener(this);
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -154,25 +161,9 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
+        this.menuItem = item;
+        ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -220,6 +211,56 @@ public class MainActivity extends AppCompatActivity
         } else {
 //            ViewHelper.setPivotX(mTitleView, 0);
         }
+    }
+
+    @Override
+    public void onDrawerSlide(View drawerView, float slideOffset) {
+
+    }
+
+    @Override
+    public void onDrawerOpened(View drawerView) {
+    }
+
+    @Override
+    public void onDrawerClosed(View drawerView) {
+        if(menuItem != null) {
+            switch(menuItem.getItemId()) {
+                case R.id.slide_docs:
+                    startIntent("documentation");
+                    break;
+                case R.id.slide_maintenace:
+                    startIntent("maintenance");
+                    break;
+                case R.id.slide_specs:
+                    startIntent("specifications");
+                    break;
+                case R.id.slide_guide:
+                    startIntent("beginners");
+                    break;
+                case R.id.slide_locator:
+                    startIntent("locator");
+                    break;
+                case R.id.slide_settings:
+                    startIntent("settings");
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        menuItem = null;
+    }
+
+    @Override
+    public void onDrawerStateChanged(int newState) {
+
+    }
+
+    private void startIntent(String fragName) {
+        startActivity(new Intent(
+                MainActivity.this, ContentDisplayActivity.class
+        ).putExtra("frag_name", fragName));
     }
 
     private int getActionBarSize() {
