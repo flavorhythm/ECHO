@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#EC5123</color>
+    <color name="echoGradientEnd">#EC7A58</color>
+    <color name="colorPrimaryDark">#E63E0C</color>
     <color name="colorAccent">#FF4081</color>
     <color name="echo_orange">#EC5123</color>
     <color name="washed_echo">#79EC5123</color>
@@ -9,4 +10,5 @@
     <color name="bg_color">#433513</color>
     <color name="white">#FFFFFF</color>
     <color name="item_pressed">#263238</color>
+    <color name="background">#F0F0F0</color>
 </resources>
