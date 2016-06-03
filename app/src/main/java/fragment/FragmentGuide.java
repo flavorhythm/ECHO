@@ -12,7 +12,7 @@ import com.echo_usa.echo.R;
 /**
  * Created by zyuki on 6/2/2016.
  */
-public class FragmentBeginners extends BaseFragment {
+public class FragmentGuide extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
