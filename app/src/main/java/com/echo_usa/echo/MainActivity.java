@@ -60,14 +60,14 @@ public class MainActivity extends AppCompatActivity
 
         DataAccessObject dataAccess = new DataAccessObject();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
 
         DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
         drawer.addDrawerListener(this);
@@ -139,8 +139,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+//        getMenuInflater().inflate(R.menu.main, menu);
+        return false;
     }
 
     @Override
@@ -194,14 +194,6 @@ public class MainActivity extends AppCompatActivity
 //        ViewHelper.setTranslationY(mTitleView, titleTranslationY);
     }
 
-    @Override
-    public void onDownMotionEvent() {
-    }
-
-    @Override
-    public void onUpOrCancelMotionEvent(ScrollState scrollState) {
-    }
-
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private void setPivotXToTitle() {
         Configuration config = getResources().getConfiguration();
@@ -211,15 +203,6 @@ public class MainActivity extends AppCompatActivity
         } else {
 //            ViewHelper.setPivotX(mTitleView, 0);
         }
-    }
-
-    @Override
-    public void onDrawerSlide(View drawerView, float slideOffset) {
-
-    }
-
-    @Override
-    public void onDrawerOpened(View drawerView) {
     }
 
     @Override
@@ -252,11 +235,6 @@ public class MainActivity extends AppCompatActivity
         menuItem = null;
     }
 
-    @Override
-    public void onDrawerStateChanged(int newState) {
-
-    }
-
     private void startIntent(String fragName) {
         startActivity(new Intent(
                 MainActivity.this, ContentDisplayActivity.class
@@ -272,4 +250,19 @@ public class MainActivity extends AppCompatActivity
         a.recycle();
         return actionBarSize;
     }
+
+    @Override
+    public void onDrawerStateChanged(int newState) {}
+
+    @Override
+    public void onDrawerSlide(View drawerView, float slideOffset) {}
+
+    @Override
+    public void onDrawerOpened(View drawerView) {}
+
+    @Override
+    public void onDownMotionEvent() {}
+
+    @Override
+    public void onUpOrCancelMotionEvent(ScrollState scrollState) {}
 }
