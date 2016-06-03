@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:id="@+id/slide_menu_main">
+    <group android:id="@+id/slide_section_home">
+        <item
+            android:id="@+id/slide_home"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="@string/slide_menu_home"/>
+    </group>
+    <group android:id="@+id/slide_section_main">
         <item android:title="Resources">
             <menu>
                 <item
@@ -22,7 +28,7 @@
             </menu>
         </item>
     </group>
-    <group android:id="@+id/slide_menu_admin">
+    <group android:id="@+id/slide_section_admin">
         <item android:title="Administration">
             <menu>
                 <item

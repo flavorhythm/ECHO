@@ -26,7 +26,10 @@ ext {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    repositories {
+        mavenCentral()
+    }
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile "com.google.android.gms:play-services-auth:${playLibVersion}"
     compile "com.google.android.gms:play-services-appindexing:${playLibVersion}"
@@ -38,6 +41,7 @@ dependencies {
     compile "com.github.ksoichiro:android-observablescrollview:${observableVersion}"
     compile 'com.mcxiaoke.volley:library:1.0.19'
     compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.google.android.gms:play-services-auth:9.0.1'
 }
 
 //apply plugin: 'com.google.gms.google-services'
