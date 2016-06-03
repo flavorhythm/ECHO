@@ -12,4 +12,6 @@
     <string name="slide_menu_locator">Dealer Locator</string>
     <string name="slide_menu_settings">App Settings</string>
     <string name="slide_menu_contact">Contact Us</string>
+    <string name="menu_garage">My Garage</string>
+    <string name="slide_menu_home">Home</string>
 </resources>
