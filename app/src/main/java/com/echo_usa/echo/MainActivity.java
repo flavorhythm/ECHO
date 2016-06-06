@@ -2,6 +2,7 @@ package com.echo_usa.echo;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity
         BaseFragment.Callback {
 
     private MenuItem menuItem;
+    private DrawerLayout drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
         drawer.addDrawerListener(this);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -71,28 +73,23 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_menu);
         navigationView.setNavigationItemSelectedListener(this);
 
-        setFragment(FragName.HOME);
+        getSupportFragmentManager().beginTransaction().add(R.id.main_frag_content, new FragmentHome(), FragName.HOME.toString()).commit();
     }
 
     @Override
     public void onBackPressed() {
         //TODO: Change so that on back pressed, goes back to home if drawer is closed
         //use fragment.ishidden or something similar
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else if (drawer.isDrawerOpen(GravityCompat.END)) {
-            drawer.closeDrawer(GravityCompat.END);
-        } else {
-            super.onBackPressed();
-        }
+        if (drawer.isDrawerOpen(GravityCompat.START)) {drawer.closeDrawer(GravityCompat.START);}
+        else if (drawer.isDrawerOpen(GravityCompat.END)) {drawer.closeDrawer(GravityCompat.END);}
+        else {super.onBackPressed();}
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         this.menuItem = item;
-        ((DrawerLayout)findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
+        drawer.closeDrawer(GravityCompat.START);
 
         return true;
     }
@@ -108,13 +105,14 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.menu_garage:
-                ((DrawerLayout)findViewById(R.id.drawer_layout)).openDrawer(GravityCompat.END);
+                drawer.openDrawer(GravityCompat.END);
                 break;
         }
 
         return true;
     }
 
+    //TODO: review next two overrides
     @Override
     public void onDrawerClosed(View drawerView) {
         if(menuItem != null) {
@@ -154,6 +152,7 @@ public class MainActivity extends AppCompatActivity
     private void setFragment(FragName fragName) {
         Fragment fragment;
 
+        //TODO: change to newInstance();
         switch(fragName) {
             case HOME:
                 fragment = new FragmentHome();
@@ -185,9 +184,14 @@ public class MainActivity extends AppCompatActivity
         }
 
         if(fragment != null) {
-            FragmentTransaction fragTrans = getSupportFragmentManager().beginTransaction();
-            //TODO: set animation fragTrans.setCustomAnimations()
+            FragmentManager fragManager = getSupportFragmentManager();
+            FragmentTransaction fragTrans = fragManager.beginTransaction();
+            //fragTrans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+            fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
             fragTrans.replace(R.id.main_frag_content, fragment, fragName.toString());
+            if(fragManager.getBackStackEntryCount() < 1) {
+                fragTrans.addToBackStack(null);
+            }
             fragTrans.commit();
         }
     }
