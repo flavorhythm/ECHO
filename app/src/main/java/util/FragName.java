@@ -11,7 +11,8 @@ public enum FragName {
     GUIDE("beginners_guide"),
     LOCATOR("locator"),
     SETTINGS("settings"),
-    CONTACT("contact");
+    CONTACT("contact"),
+    CARD_DISP("card_display");
 
     String value;
 
