@@ -13,6 +13,14 @@ import com.echo_usa.echo.R;
  * Created by zyuki on 6/2/2016.
  */
 public class FragmentSpecifications extends BaseFragment {
+    public static FragmentSpecifications newInstance() {
+        Bundle args = new Bundle();
+
+        FragmentSpecifications fragment = new FragmentSpecifications();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

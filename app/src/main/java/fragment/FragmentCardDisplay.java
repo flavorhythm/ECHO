@@ -10,15 +10,15 @@ import android.widget.TextView;
 import com.echo_usa.echo.R;
 
 /**
- * Created by zyuki on 6/2/2016.
+ * Created by zyuki on 6/7/2016.
  */
-public class FragmentGuide extends BaseFragment {
-    public static FragmentGuide newInstance() {
-        Bundle args = new Bundle();
+public class FragmentCardDisplay extends BaseFragment {
+    public static final String CARD_CONTENT_KEY = "content_pos";
 
-        FragmentGuide fragment = new FragmentGuide();
-        fragment.setArguments(args);
-        return fragment;
+    private int position;
+
+    public static FragmentCardDisplay newInstance() {
+        return new FragmentCardDisplay();
     }
 
     @Nullable
@@ -26,8 +26,12 @@ public class FragmentGuide extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         int layoutRes = R.layout.frag_documents;
         View fragView = inflater.inflate(layoutRes, container, false);
-        ((TextView)fragView.findViewById(R.id.test)).setText(callback.getFragName());
+        ((TextView)fragView.findViewById(R.id.test)).setText(String.valueOf(position));
 
         return fragView;
+    }
+
+    public void posOfCard(int position) {
+        this.position = position;
     }
 }

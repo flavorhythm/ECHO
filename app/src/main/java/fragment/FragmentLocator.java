@@ -13,6 +13,14 @@ import com.echo_usa.echo.R;
  * Created by zyuki on 6/2/2016.
  */
 public class FragmentLocator extends BaseFragment {
+    public static FragmentLocator newInstance() {
+        Bundle args = new Bundle();
+
+        FragmentLocator fragment = new FragmentLocator();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
