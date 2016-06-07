@@ -1,5 +1,6 @@
 package adapter;
 
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +23,12 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private List<Card> cardsList;
     private View header;
+    private View.OnClickListener listener;
 
-    public CardAdapter(List<Card> cardsList, View header) {
+    public CardAdapter(List<Card> cardsList, View header, View.OnClickListener listener) {
         this.cardsList = cardsList;
         this.header = header;
+        this.listener = listener;
     }
 
     @Override
@@ -45,6 +48,10 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if(viewHolder instanceof ItemViewHolder) {
             ((ItemViewHolder)viewHolder).image.setImageResource(cardsList.get(position).getDrawableRes());
             ((ItemViewHolder)viewHolder).cardText.setText(cardsList.get(position).getCardText());
+
+            //Order may be important
+            ((ItemViewHolder)viewHolder).cardView.setTag(position);
+            ((ItemViewHolder)viewHolder).cardView.setOnClickListener(listener);
         }
     }
 
@@ -63,12 +70,14 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
         public ImageView image;
         public TextView cardText;
+        public CardView cardView;
 
         public ItemViewHolder(View card) {
             super(card);
 
             image = (ImageView)card.findViewById(R.id.card_img_cardImg);
             cardText = (TextView)card.findViewById(R.id.card_text_cardText);
+            cardView = (CardView)card.findViewById(R.id.main_cards);
         }
     }
 }

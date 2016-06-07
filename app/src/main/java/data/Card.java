@@ -4,6 +4,7 @@ package data;
  * Created by zyuki on 6/1/2016.
  */
 public class Card {
+
     int drawableRes;
     String cardText;
 

@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.CardView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -14,16 +15,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.List;
+
+import data.Card;
+import data.DataAccessObject;
 import fragment.BaseFragment;
-import fragment.FragmentContact;
-import fragment.FragmentGuide;
-import fragment.FragmentDocuments;
-import fragment.FragmentHome;
-import fragment.FragmentLocator;
-import fragment.FragmentMaintenance;
-import fragment.FragmentSettings;
-import fragment.FragmentSpecifications;
+import fragment.FragmentCardDisplay;
 import util.FragName;
+
+import static util.FragName.*;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener,
@@ -32,10 +32,14 @@ public class MainActivity extends AppCompatActivity
     private MenuItem menuItem;
     private DrawerLayout drawer;
 
+    private DataAccessObject dataAccess;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        dataAccess = new DataAccessObject();
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -73,7 +77,13 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_menu);
         navigationView.setNavigationItemSelectedListener(this);
 
-        getSupportFragmentManager().beginTransaction().add(R.id.main_frag_content, new FragmentHome(), FragName.HOME.toString()).commit();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(
+                        R.id.main_frag_content,
+                        dataAccess.getThisFrag(HOME),
+                        HOME.toString()
+                ).commit();
     }
 
     @Override
@@ -112,94 +122,93 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    //TODO: review next two overrides
     @Override
     public void onDrawerClosed(View drawerView) {
         if(menuItem != null) {
-            switch(menuItem.getItemId()) {
-                case R.id.slide_home:
-                    setFragment(FragName.HOME);
-                    break;
-                case R.id.slide_docs:
-                    setFragment(FragName.DOCS);
-                    break;
-                case R.id.slide_maintenace:
-                    setFragment(FragName.MAINT);
-                    break;
-                case R.id.slide_specs:
-                    setFragment(FragName.SPECS);
-                    break;
-                case R.id.slide_guide:
-                    setFragment(FragName.GUIDE);
-                    break;
-                case R.id.slide_locator:
-                    setFragment(FragName.LOCATOR);
-                    break;
-                case R.id.slide_settings:
-                    setFragment(FragName.SETTINGS);
-                    break;
-                case R.id.slide_contact:
-                    setFragment(FragName.CONTACT);
-                    break;
-                default:
-                    break;
-            }
-
-            menuItem = null;
-        }
-    }
-
-    private void setFragment(FragName fragName) {
-        Fragment fragment;
-
-        //TODO: change to newInstance();
-        switch(fragName) {
-            case HOME:
-                fragment = new FragmentHome();
-                break;
-            case DOCS:
-                fragment = new FragmentDocuments();
-                break;
-            case MAINT:
-                fragment = new FragmentMaintenance();
-                break;
-            case SPECS:
-                fragment = new FragmentSpecifications();
-                break;
-            case GUIDE:
-                fragment = new FragmentGuide();
-                break;
-            case LOCATOR:
-                fragment = new FragmentLocator();
-                break;
-            case SETTINGS:
-                fragment = new FragmentSettings();
-                break;
-            case CONTACT:
-                fragment = new FragmentContact();
-                break;
-            default:
-                fragment = null;
-                break;
-        }
-
-        if(fragment != null) {
             FragmentManager fragManager = getSupportFragmentManager();
             FragmentTransaction fragTrans = fragManager.beginTransaction();
-            //fragTrans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
             fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
-            fragTrans.replace(R.id.main_frag_content, fragment, fragName.toString());
+
+            FragName fragName = getNameById(menuItem.getItemId());
+            if(fragName != null) {
+                fragTrans.replace(
+                        R.id.main_frag_content,
+                        dataAccess.getThisFrag(fragName),
+                        fragName.toString()
+                );
+            }
+
             if(fragManager.getBackStackEntryCount() < 1) {
                 fragTrans.addToBackStack(null);
             }
             fragTrans.commit();
+
+            menuItem = null;
+        }
+
+    }
+
+    private FragName getNameById(int menuId) {
+        switch(menuId) {
+                case R.id.slide_home:
+                    return HOME;
+                case R.id.slide_docs:
+                    return DOCS;
+                case R.id.slide_maintenace:
+                    return MAINT;
+                case R.id.slide_specs:
+                    return SPECS;
+                case R.id.slide_guide:
+                    return GUIDE;
+                case R.id.slide_locator:
+                    return LOCATOR;
+                case R.id.slide_settings:
+                    return SETTINGS;
+                case R.id.slide_contact:
+                    return CONTACT;
+                default:
+                    return null;
         }
     }
 
     @Override
-    public String getFragName() {
-        return null;
+    public View.OnClickListener getCardListnener() {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View card) {
+                FragmentManager fragManager = getSupportFragmentManager();
+                FragmentTransaction fragTrans = fragManager.beginTransaction();
+                fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
+
+                FragmentCardDisplay fragment = (FragmentCardDisplay)dataAccess.getThisFrag(CARD_DISP);
+                if(card.getTag() instanceof Integer) {
+                    fragment.posOfCard((Integer)card.getTag());
+                }
+
+                fragTrans.replace(
+                        R.id.main_frag_content,
+                        fragment,
+                        CARD_DISP.toString()
+                );
+
+                if(fragManager.getBackStackEntryCount() < 1) {
+                    fragTrans.addToBackStack(null);
+                }
+                fragTrans.commit();
+            }
+        };
     }
+
+    @Override
+    public List<Card> getCards() {
+        return dataAccess.getCards();
+    }
+
+    @Override
+    public String getFragName() {return null;}
+
+    @Override
+    public String selectedUnit() {return null;}
 
     @Override
     public void onDrawerStateChanged(int newState) {}
