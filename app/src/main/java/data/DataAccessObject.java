@@ -58,9 +58,17 @@ public class DataAccessObject {
 
     public List<Card> getCards() {return cardsList;}
 
-    public Map<FragName, Fragment> getFrags() {return fragMap;}
-
     public Fragment getThisFrag(FragName key) {return fragMap.get(key);}
+
+    public boolean isFragVisible(FragName fragName) {
+        return fragMap.get(fragName).isVisible();
+    }
+
+    public boolean isFragVisible(int menuId) {
+        FragName fragName = FragName.getNameById(menuId);
+
+        return isFragVisible(fragName);
+    }
 
     private void buildList() {
         for(int i = 0; i < titleList.length; i++) {

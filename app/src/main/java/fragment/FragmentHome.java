@@ -33,10 +33,7 @@ public class FragmentHome extends BaseFragment implements ObservableScrollViewCa
     private View mImageView;
     private View mOverlayView;
     private View mRecyclerViewBackground;
-    private int mActionBarSize;
     private int mFlexibleSpaceImageHeight;
-
-    private ObservableRecyclerView recyclerView;
 
     public static FragmentHome newInstance() {
         Bundle args = new Bundle();
@@ -51,9 +48,7 @@ public class FragmentHome extends BaseFragment implements ObservableScrollViewCa
         int layoutRes = R.layout.frag_home;
         View fragView = inflater.inflate(layoutRes, container, false);
 
-        mActionBarSize = getActionBarSize();
-
-        recyclerView = (ObservableRecyclerView)fragView.findViewById(R.id.recycler);
+        ObservableRecyclerView recyclerView = (ObservableRecyclerView)fragView.findViewById(R.id.recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setHasFixedSize(false);
 
@@ -109,11 +104,11 @@ public class FragmentHome extends BaseFragment implements ObservableScrollViewCa
     @Override
     public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
         // Translate overlay and image
-
+        int mActionBarSize = getActionBarSize();
         float flexibleRange = mFlexibleSpaceImageHeight - mActionBarSize;
         int minOverlayTransitionY = mActionBarSize - mOverlayView.getHeight();
-        ViewHelper.setTranslationY(mOverlayView, ScrollUtils.getFloat(-scrollY, minOverlayTransitionY, 0));
 
+        ViewHelper.setTranslationY(mOverlayView, ScrollUtils.getFloat(-scrollY, minOverlayTransitionY, 0));
         ViewHelper.setTranslationY(mImageView, ScrollUtils.getFloat(-scrollY / 2, minOverlayTransitionY, 0));
 
         // Translate list background
@@ -133,21 +128,21 @@ public class FragmentHome extends BaseFragment implements ObservableScrollViewCa
         // We don't use this callbac
     }
 
-    protected void updateFlexibleSpace(int scrollY, View view) {
-        int flexibleSpaceImageHeight = getResources().getDimensionPixelSize(R.dimen.flexible_space_image_height);
-
-        View recyclerViewBackground = view.findViewById(R.id.list_background);
-
-        // Translate list background
-        ViewHelper.setTranslationY(recyclerViewBackground, Math.max(0, -scrollY + flexibleSpaceImageHeight));
-
-        // Also pass this event to parent Activity
-//        FlexibleActivity parentActivity =
-//                (FlexibleActivity) getActivity();
-//        if (parentActivity != null) {
-//            parentActivity.onScrollChanged(scrollY, (ObservableRecyclerView) view.findViewById(R.id.scroll));
-//        }
-    }
+//    protected void updateFlexibleSpace(int scrollY, View view) {
+//        int flexibleSpaceImageHeight = getResources().getDimensionPixelSize(R.dimen.flexible_space_image_height);
+//
+//        View recyclerViewBackground = view.findViewById(R.id.list_background);
+//
+//        // Translate list background
+//        ViewHelper.setTranslationY(recyclerViewBackground, Math.max(0, -scrollY + flexibleSpaceImageHeight));
+//
+//        // Also pass this event to parent Activity
+////        FlexibleActivity parentActivity =
+////                (FlexibleActivity) getActivity();
+////        if (parentActivity != null) {
+////            parentActivity.onScrollChanged(scrollY, (ObservableRecyclerView) view.findViewById(R.id.scroll));
+////        }
+//    }
 
     protected int getActionBarSize() {
         Activity activity = getActivity();

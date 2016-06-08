@@ -1,10 +1,10 @@
 package com.echo_usa.echo;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.CardView;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -38,6 +38,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
         dataAccess = new DataAccessObject();
 
@@ -76,20 +80,13 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_menu);
         navigationView.setNavigationItemSelectedListener(this);
+        menuItem = navigationView.getMenu().findItem(R.id.slide_home);
 
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(
-                        R.id.main_frag_content,
-                        dataAccess.getThisFrag(HOME),
-                        HOME.toString()
-                ).commit();
+        fragTrans(HOME);
     }
 
     @Override
     public void onBackPressed() {
-        //TODO: Change so that on back pressed, goes back to home if drawer is closed
-        //use fragment.ishidden or something similar
         if (drawer.isDrawerOpen(GravityCompat.START)) {drawer.closeDrawer(GravityCompat.START);}
         else if (drawer.isDrawerOpen(GravityCompat.END)) {drawer.closeDrawer(GravityCompat.END);}
         else {super.onBackPressed();}
@@ -98,7 +95,11 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        this.menuItem = item;
+        if(dataAccess.isFragVisible(item.getItemId())) {
+            menuItem = null;
+        } else {
+            menuItem = item;
+        }
         drawer.closeDrawer(GravityCompat.START);
 
         return true;
@@ -125,50 +126,31 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDrawerClosed(View drawerView) {
         if(menuItem != null) {
-            FragmentManager fragManager = getSupportFragmentManager();
-            FragmentTransaction fragTrans = fragManager.beginTransaction();
-            fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
-
-            FragName fragName = getNameById(menuItem.getItemId());
-            if(fragName != null) {
-                fragTrans.replace(
-                        R.id.main_frag_content,
-                        dataAccess.getThisFrag(fragName),
-                        fragName.toString()
-                );
-            }
-
-            if(fragManager.getBackStackEntryCount() < 1) {
-                fragTrans.addToBackStack(null);
-            }
-            fragTrans.commit();
+            FragName fragName = FragName.getNameById(menuItem.getItemId());
+            if(fragName != null) {fragTrans(fragName);}
 
             menuItem = null;
         }
-
     }
 
-    private FragName getNameById(int menuId) {
-        switch(menuId) {
-                case R.id.slide_home:
-                    return HOME;
-                case R.id.slide_docs:
-                    return DOCS;
-                case R.id.slide_maintenace:
-                    return MAINT;
-                case R.id.slide_specs:
-                    return SPECS;
-                case R.id.slide_guide:
-                    return GUIDE;
-                case R.id.slide_locator:
-                    return LOCATOR;
-                case R.id.slide_settings:
-                    return SETTINGS;
-                case R.id.slide_contact:
-                    return CONTACT;
-                default:
-                    return null;
+    private void fragTrans(FragName fragName) {
+        FragmentManager fragManager = getSupportFragmentManager();
+        FragmentTransaction fragTrans = fragManager.beginTransaction();
+        fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
+
+        if(fragName != HOME) {
+            if(dataAccess.isFragVisible(HOME)) {
+                fragTrans.addToBackStack(HOME.toString());
+            }
         }
+
+        fragTrans.replace(
+                R.id.main_frag_content,
+                dataAccess.getThisFrag(fragName),
+                fragName.toString()
+        );
+
+        fragTrans.commit();
     }
 
     @Override
@@ -191,24 +173,16 @@ public class MainActivity extends AppCompatActivity
                         CARD_DISP.toString()
                 );
 
-                if(fragManager.getBackStackEntryCount() < 1) {
-                    fragTrans.addToBackStack(null);
-                }
                 fragTrans.commit();
             }
         };
     }
 
     @Override
-    public List<Card> getCards() {
-        return dataAccess.getCards();
-    }
+    public List<Card> getCards() {return dataAccess.getCards();}
 
     @Override
     public String getFragName() {return null;}
-
-    @Override
-    public String selectedUnit() {return null;}
 
     @Override
     public void onDrawerStateChanged(int newState) {}
