@@ -26,6 +26,5 @@ public abstract class BaseFragment extends Fragment {
         View.OnClickListener getCardListnener();
         List<Card> getCards();
         String getFragName();
-        String selectedUnit();
     }
 }

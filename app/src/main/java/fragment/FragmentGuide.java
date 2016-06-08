@@ -24,7 +24,7 @@ public class FragmentGuide extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        int layoutRes = R.layout.frag_documents;
+        int layoutRes = R.layout.frag_guide;
         View fragView = inflater.inflate(layoutRes, container, false);
         ((TextView)fragView.findViewById(R.id.test)).setText(callback.getFragName());
 
