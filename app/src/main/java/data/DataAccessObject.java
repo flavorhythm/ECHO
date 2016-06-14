@@ -26,37 +26,28 @@ import static util.FragName.*;
  * Created by zyuki on 6/1/2016.
  */
 public class DataAccessObject {
-    private List<Card> cardsList;
+    public static final int CARDS_FOR_HOME = 0;
+    public static final int CARDS_FOR_DOCS = 1;
+
+    private List<Card> homeCardsList;
+    private List<Card> docsCardsList;
     private Map<FragName, Fragment> fragMap;
 
-    private String[] titleList;
-    private Integer[] drawableList;
-
     public DataAccessObject() {
-        cardsList = new ArrayList<>();
-        titleList = new String[] {
-                "Get the specs of this unit",
-                "Locate the nearest dealer",
-                "Ongoing sale!",
-                "How-to videos",
-                "Get this fuel!",
-                "Which unit should I buy?"
-        };
-
-        drawableList = new Integer[] {
-                R.drawable.specs,
-                R.drawable.locator,
-                R.drawable.sale,
-                R.drawable.videos,
-                R.drawable.can,
-                R.drawable.suggestions
-        };
+        homeCardsList = new ArrayList<>();
+        docsCardsList = new ArrayList<>();
 
         buildList();
         buildFragmentList();
     }
 
-    public List<Card> getCards() {return cardsList;}
+    public List<Card> getCards(int cardsForPage) {
+        if (cardsForPage == CARDS_FOR_DOCS) {
+            return docsCardsList;
+        } else if (cardsForPage == CARDS_FOR_HOME) {
+            return homeCardsList;
+        } else return null;
+    }
 
     public Fragment getThisFrag(FragName key) {return fragMap.get(key);}
 
@@ -71,10 +62,52 @@ public class DataAccessObject {
     }
 
     private void buildList() {
-        for(int i = 0; i < titleList.length; i++) {
-            cardsList.add(
-                    new Card(drawableList[i], titleList[i])
-            );
+        {
+            String[] titleList = new String[] {
+                    "Get the specs of this unit",
+                    "Locate the nearest dealer",
+                    "Ongoing sale!",
+                    "How-to videos",
+                    "Get this fuel!",
+                    "Which unit should I buy?"
+            };
+
+            Integer[] drawableList = new Integer[] {
+                    R.drawable.specs,
+                    R.drawable.locator,
+                    R.drawable.sale,
+                    R.drawable.videos,
+                    R.drawable.can,
+                    R.drawable.suggestions
+            };
+
+            for(int i = 0; i < titleList.length; i++) {
+                homeCardsList.add(
+                        new Card(drawableList[i], titleList[i])
+                );
+            }
+        }
+
+        {
+            String[] titleList = new String[] {
+                    "user manual",
+                    "spec sheet",
+                    "warranty",
+                    "quick start"
+            };
+
+            Integer[] drawableList = new Integer[] {
+                    R.drawable.placeholder,
+                    R.drawable.placeholder,
+                    R.drawable.placeholder,
+                    R.drawable.placeholder
+            };
+
+            for(int i = 0; i < titleList.length; i++) {
+                docsCardsList.add(
+                        new Card(drawableList[i], titleList[i])
+                );
+            }
         }
     }
 
