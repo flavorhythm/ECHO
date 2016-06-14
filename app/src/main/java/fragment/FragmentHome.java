@@ -20,6 +20,9 @@ import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.nineoldandroids.view.ViewHelper;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import adapter.CardAdapter;
 import data.DataAccessObject;
 
@@ -56,7 +59,7 @@ public class FragmentHome extends BaseFragment implements ObservableScrollViewCa
         final int flexibleSpaceImageHeight = getResources().getDimensionPixelSize(R.dimen.flexible_space_image_height);
         headerView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, flexibleSpaceImageHeight));
 
-        recyclerView.setAdapter(new CardAdapter(callback.getCards(), headerView, callback.getCardListnener()));
+        recyclerView.setAdapter(new CardAdapter(callback.getCards(DataAccessObject.CARDS_FOR_HOME), headerView, callback.getCardListnener()).setActivity(getActivity()));
 
         // TouchInterceptionViewGroup should be a parent view other than ViewPager.
         // This is a workaround for the issue #117:

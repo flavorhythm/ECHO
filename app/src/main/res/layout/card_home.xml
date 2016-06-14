@@ -2,33 +2,32 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:paddingLeft="10dp"
-    android:paddingRight="10dp"
-    android:paddingBottom="5dp"
+    android:gravity="center_horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
-
     <android.support.v7.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:card_view="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/main_cards"
-        android:layout_gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
+        android:id="@+id/card_home"
+        android:layout_width="@dimen/card_home_imageWidth"
+        android:layout_height="wrap_content"
         card_view:cardUseCompatPadding="true"
         card_view:cardElevation="3dp"
         card_view:cardCornerRadius="2dp">
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@color/white">
             <ImageView
-                android:id="@+id/card_img_cardImg"
+                android:id="@+id/card_home_image"
                 android:layout_width="match_parent"
-                android:scaleType="centerCrop"
-                android:layout_height="170dp" />
+                android:layout_height="@dimen/card_home_imageHeight"
+                android:scaleType="centerCrop" />
             <TextView
-                android:id="@+id/card_text_cardText"
-                android:padding="16dp"
+                android:id="@+id/card_home_text"
+                android:padding="12dp"
+                android:gravity="center_vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="testing!"/>
