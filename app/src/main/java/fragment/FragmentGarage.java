@@ -195,21 +195,21 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         }
     }
 
-    protected void updateFlexibleSpace(int scrollY, View view) {
-        int flexibleSpaceImageHeight = getResources().getDimensionPixelSize(R.dimen.flexible_space_image_height);
-
-        View recyclerViewBackground = view.findViewById(R.id.list_background);
-
-        // Translate list background
-        ViewHelper.setTranslationY(recyclerViewBackground, Math.max(0, -scrollY + flexibleSpaceImageHeight));
-
-        // Also pass this event to parent Activity
-//        FlexibleActivity parentActivity =
-//                (FlexibleActivity) getActivity();
-//        if (parentActivity != null) {
-//            parentActivity.onScrollChanged(scrollY, (ObservableRecyclerView) view.findViewById(R.id.scroll));
-//        }
-    }
+//    protected void updateFlexibleSpace(int scrollY, View view) {
+//        int flexibleSpaceImageHeight = getResources().getDimensionPixelSize(R.dimen.flexible_space_image_height);
+//
+//        View recyclerViewBackground = view.findViewById(R.id.list_bg_main);
+//
+//        // Translate list background
+//        ViewHelper.setTranslationY(recyclerViewBackground, Math.max(0, -scrollY + flexibleSpaceImageHeight));
+//
+//        // Also pass this event to parent Activity
+////        FlexibleActivity parentActivity =
+////                (FlexibleActivity) getActivity();
+////        if (parentActivity != null) {
+////            parentActivity.onScrollChanged(scrollY, (ObservableRecyclerView) view.findViewById(R.id.scroll));
+////        }
+//    }
 
     protected int getActionBarSize() {
         Activity activity = getActivity();
