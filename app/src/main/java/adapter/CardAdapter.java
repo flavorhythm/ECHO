@@ -20,6 +20,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.echo_usa.echo.MainActivity;
@@ -35,10 +37,12 @@ import data.Card;
  */
 public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int VIEW_TYPE_HEADER = 0;
-    private static final int VIEW_TYPE_ITEM = 1;
+    private static final int VIEW_TYPE_DIVIDER = 1;
+    private static final int VIEW_TYPE_ITEM = 2;
 
     private List<Card> cardsList;
     private View header;
+    private View divider;
     private View.OnClickListener listener;
 
     private LruCache<String, Bitmap> memoryCache;
@@ -48,6 +52,22 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         this.cardsList = cardsList;
         this.header = header;
         this.listener = listener;
+    }
+
+    public CardAdapter setActivity(Activity activity) {
+        divider = new View(activity);
+        this.resources = activity.getResources();
+
+        buildDivider();
+
+        return this;
+    }
+
+    private void buildDivider() {
+        divider.setLayoutParams(
+                new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 50)
+        );
+        divider.setBackgroundResource(R.color.echo_orange);
     }
 
     @Override
@@ -67,24 +87,37 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if(viewType == VIEW_TYPE_HEADER) {
-            return new HeaderViewHolder(header);
-        } else {
-            int layoutRes = R.layout.card_home;
-            return new ItemViewHolder(
-                    LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false)
-            );
+        switch(viewType) {
+            case VIEW_TYPE_HEADER:
+                return new HeaderViewHolder(header);
+            case VIEW_TYPE_DIVIDER:
+                return new HeaderViewHolder(divider);
+            default:
+                int layoutRes = R.layout.card_home;
+                return new ItemViewHolder(
+                        LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false)
+                );
         }
+//        if(viewType == VIEW_TYPE_HEADER) {
+//            return new HeaderViewHolder(header);
+//        } else {
+//            int layoutRes = R.layout.card_home;
+//            return new ItemViewHolder(
+//                    LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false)
+//            );
+//        }
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int originalPos) {
         if(viewHolder instanceof ItemViewHolder) {
-            ((ItemViewHolder)viewHolder).imageRes = cardsList.get(position).getDrawableRes();
-            ((ItemViewHolder)viewHolder).cardText.setText(cardsList.get(position).getCardText());
+            int adjustedPos = originalPos - 2;
+
+            ((ItemViewHolder)viewHolder).imageRes = cardsList.get(adjustedPos).getDrawableRes();
+            ((ItemViewHolder)viewHolder).cardText.setText(cardsList.get(adjustedPos).getCardText());
 
             //Order may be important
-            ((ItemViewHolder)viewHolder).cardView.setTag(position);
+            ((ItemViewHolder)viewHolder).cardView.setTag(adjustedPos);
             ((ItemViewHolder)viewHolder).cardView.setOnClickListener(listener);
 
             final int resId = ((ItemViewHolder)viewHolder).imageRes;
@@ -141,16 +174,28 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemViewType(int position) {
-        return (position == 0) ? VIEW_TYPE_HEADER : VIEW_TYPE_ITEM;
+        switch(position) {
+            case 0:
+                return VIEW_TYPE_HEADER;
+            case 1:
+                return VIEW_TYPE_DIVIDER;
+            default:
+                return VIEW_TYPE_ITEM;
+        }
     }
 
     @Override
-    public int getItemCount() {return cardsList.size();}
+    public int getItemCount() {
+        boolean emptyHeader = (header == null);
+        boolean emptyDivider = (divider == null);
 
-    public CardAdapter setActivity(Activity activity) {
-        this.resources = activity.getResources();
-
-        return this;
+        if(emptyHeader && emptyDivider) {
+            return cardsList.size();
+        } else if(emptyHeader || emptyDivider){
+            return cardsList.size() + 1;
+        } else {
+            return cardsList.size() + 2;
+        }
     }
 
     public static class HeaderViewHolder extends RecyclerView.ViewHolder {
