@@ -9,4 +9,7 @@
     <dimen name="margin_standard">16dp</dimen>
     <dimen name="flexible_space_image_height">240dp</dimen>
     <dimen name="flexible_space_show_fab_offset">120dp</dimen>
+    <dimen name="card_home_imageWidth">380dp</dimen>
+    <dimen name="card_home_imageHeight">180dp</dimen>
+    <dimen name="action_bar_elevation">0dp</dimen>
 </resources>
