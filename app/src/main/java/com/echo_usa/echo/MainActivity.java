@@ -1,10 +1,10 @@
 package com.echo_usa.echo;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.DisplayMetrics;
-import android.util.Log;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Window;
 
 import java.util.List;
 
@@ -34,19 +35,29 @@ public class MainActivity extends AppCompatActivity
 
     private DataAccessObject dataAccess;
 
+    private boolean backStackHome = true;
+    private int containerId = R.id.main_frag_content;
+    private int adCardNum;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        supportRequestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setElevation(0);
+
+        //brings actionbar to the front
+        findViewById(R.id.appbar_layout).bringToFront();
+        findViewById(R.id.main_frag_content).invalidate();
 
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
         dataAccess = new DataAccessObject();
-
-        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
         drawer.addDrawerListener(this);
@@ -80,16 +91,18 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView)findViewById(R.id.nav_menu);
         navigationView.setNavigationItemSelectedListener(this);
-        menuItem = navigationView.getMenu().findItem(R.id.slide_home);
 
-        fragTrans(HOME);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .add(containerId, dataAccess.getThisFrag(HOME), HOME.toString())
+                .commit();
     }
 
     @Override
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {drawer.closeDrawer(GravityCompat.START);}
         else if (drawer.isDrawerOpen(GravityCompat.END)) {drawer.closeDrawer(GravityCompat.END);}
-        else {super.onBackPressed();}
+        else {super.onBackPressed(); backStackHome = true;}
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -100,8 +113,8 @@ public class MainActivity extends AppCompatActivity
         } else {
             menuItem = item;
         }
-        drawer.closeDrawer(GravityCompat.START);
 
+        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
@@ -138,14 +151,21 @@ public class MainActivity extends AppCompatActivity
         FragmentTransaction fragTrans = fragManager.beginTransaction();
         fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
 
-        if(fragName != HOME) {
-            if(dataAccess.isFragVisible(HOME)) {
-                fragTrans.addToBackStack(HOME.toString());
-            }
+        if(backStackHome) {
+            fragTrans.addToBackStack(HOME.toString());
+        }
+
+        if(fragName == HOME && !backStackHome) {
+            fragManager.popBackStack();
+            backStackHome = true;
+        } else {backStackHome = false;}
+
+        if(fragName == CARD_DISP) {
+            ((FragmentCardDisplay)dataAccess.getThisFrag(fragName)).posOfCard(adCardNum);
         }
 
         fragTrans.replace(
-                R.id.main_frag_content,
+                containerId,
                 dataAccess.getThisFrag(fragName),
                 fragName.toString()
         );
@@ -158,31 +178,20 @@ public class MainActivity extends AppCompatActivity
         return new View.OnClickListener() {
             @Override
             public void onClick(View card) {
-                FragmentManager fragManager = getSupportFragmentManager();
-                FragmentTransaction fragTrans = fragManager.beginTransaction();
-                fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
-
-                FragmentCardDisplay fragment = (FragmentCardDisplay)dataAccess.getThisFrag(CARD_DISP);
                 if(card.getTag() instanceof Integer) {
-                    fragment.posOfCard((Integer)card.getTag());
+                    adCardNum = (Integer)card.getTag();
                 }
 
-                fragTrans.replace(
-                        R.id.main_frag_content,
-                        fragment,
-                        CARD_DISP.toString()
-                );
-
-                fragTrans.commit();
+                fragTrans(CARD_DISP);
             }
         };
     }
 
     @Override
-    public List<Card> getCards() {return dataAccess.getCards();}
+    public List<Card> getCards(int cardsForPage) {return dataAccess.getCards(cardsForPage);}
 
     @Override
-    public String getFragName() {return null;}
+    public Integer[] getAdsForHeader() {return dataAccess.getAdsForHeader();}
 
     @Override
     public void onDrawerStateChanged(int newState) {}
