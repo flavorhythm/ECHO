@@ -49,6 +49,15 @@ public class DataAccessObject {
         } else return null;
     }
 
+    public Integer[] getAdsForHeader() {
+        return new Integer[] {
+                R.drawable.header,
+                R.drawable.header,
+                R.drawable.header,
+                R.drawable.header
+        };
+    }
+
     public Fragment getThisFrag(FragName key) {return fragMap.get(key);}
 
     public boolean isFragVisible(FragName fragName) {

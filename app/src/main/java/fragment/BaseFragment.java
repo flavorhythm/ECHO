@@ -25,6 +25,6 @@ public abstract class BaseFragment extends Fragment {
     public interface Callback {
         View.OnClickListener getCardListnener();
         List<Card> getCards(int cardsForPage);
-        String getFragName();
+        Integer[] getAdsForHeader();
     }
 }
