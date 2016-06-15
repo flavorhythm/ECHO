@@ -1,38 +1,25 @@
 package fragment;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.TypedArray;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.echo_usa.echo.R;
 import com.github.ksoichiro.android.observablescrollview.ObservableListView;
-import com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.ViewPropertyAnimator;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zyuki on 6/7/2016.
@@ -77,13 +64,13 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         listView = (ObservableListView)fragView.findViewById(R.id.garage_recycler);
         listView.setScrollViewCallbacks(this);
 
-        // Set padding view for ListView. This is the flexible space.
+        // Set header_padding view for ListView. This is the flexible space.
         View paddingView = new View(getActivity());
         AbsListView.LayoutParams lp = new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT,
                 mFlexibleSpaceImageHeight);
         paddingView.setLayoutParams(lp);
 
-        // This is required to disable header's list selector effect
+        // This is required to disable header_base's list selector effect
         paddingView.setClickable(true);
 
         String[] values = new String[] { "Android List View",
@@ -112,7 +99,7 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         listView.addHeaderView(paddingView);
         listView.setAdapter(adapter);
 
-        mFab = fragView.findViewById(R.id.fab);
+        mFab = fragView.findViewById(R.id.garage_button_addUnit);
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,7 +110,7 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         ViewHelper.setScaleX(mFab, 0);
         ViewHelper.setScaleY(mFab, 0);
 
-        // mListBackgroundView makes ListView's background except header view.
+        // mListBackgroundView makes ListView's background except header_base view.
         mListBackgroundView = fragView.findViewById(R.id.garage_background);
 
         return fragView;
