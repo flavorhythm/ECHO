@@ -1,15 +1,16 @@
 package fragment;
 
-import android.app.Activity;
-import android.content.res.TypedArray;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.TypedValue;
+import android.support.annotation.Nullable;
+import android.support.v4.view.GravityCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -21,13 +22,13 @@ import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.ViewPropertyAnimator;
 
+import util.ScreenSize;
+
 /**
  * Created by zyuki on 6/7/2016.
  */
 public class FragmentGarage extends BaseFragment implements ObservableScrollViewCallbacks {
-
-    public static final String ARG_SCROLL_Y = "ARG_SCROLL_Y";
-    private static final float MAX_TEXT_SCALE_DELTA = 0.3f;
+    public static FragmentGarage thisFragment;
 
     private View mImageView;
     private View mOverlayView;
@@ -41,12 +42,28 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
 
     private ObservableListView listView;
 
-    public static FragmentHome newInstance() {
-        Bundle args = new Bundle();
+    public static FragmentGarage newInstance() {
+        if(thisFragment == null) thisFragment = new FragmentGarage();
+        return thisFragment;
+    }
 
-        FragmentHome fragment = new FragmentHome();
-        fragment.setArguments(args);
-        return fragment;
+    @Override
+    public void updateFragContent(String modelName) {}
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        mFlexibleSpaceImageHeight = ScreenSize.getDrawerHeaderHeight(getActivity());
+        mFlexibleSpaceShowFabOffset = mFlexibleSpaceImageHeight / 2;
+        mActionBarSize = ScreenSize.getActionBarSize(getActivity());
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        this.fragName = "right_drawer_garage";
     }
 
     @Override
@@ -54,50 +71,32 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         int layoutRes = R.layout.frag_garage;
         View fragView = inflater.inflate(layoutRes, container, false);
 
-        mFlexibleSpaceImageHeight = getResources().getDimensionPixelSize(R.dimen.flexible_space_image_height);
-        mFlexibleSpaceShowFabOffset = getResources().getDimensionPixelSize(R.dimen.flexible_space_show_fab_offset);
-        mActionBarSize = getActionBarSize();
-
         mImageView = fragView.findViewById(R.id.garage_header);
         mOverlayView = fragView.findViewById(R.id.garage_overlay);
+
+        FrameLayout.LayoutParams lpHeader = new FrameLayout.LayoutParams(
+                AbsListView.LayoutParams.MATCH_PARENT,
+                mFlexibleSpaceImageHeight
+        );
+        mImageView.setLayoutParams(lpHeader);
+        mOverlayView.setLayoutParams(lpHeader);
 
         listView = (ObservableListView)fragView.findViewById(R.id.garage_recycler);
         listView.setScrollViewCallbacks(this);
 
         // Set header_padding view for ListView. This is the flexible space.
         View paddingView = new View(getActivity());
-        AbsListView.LayoutParams lp = new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT,
-                mFlexibleSpaceImageHeight);
-        paddingView.setLayoutParams(lp);
+        AbsListView.LayoutParams lpPadding = new AbsListView.LayoutParams(
+                AbsListView.LayoutParams.MATCH_PARENT,
+                mFlexibleSpaceImageHeight
+        );
+        paddingView.setLayoutParams(lpPadding);
 
         // This is required to disable header_base's list selector effect
         paddingView.setClickable(true);
 
-        String[] values = new String[] { "Android List View",
-                "Adapter implementation",
-                "Simple List View In Android",
-                "Create List View Android",
-                "Android Example",
-                "List View Source Code",
-                "List View Array Adapter",
-                "Adapter implementation",
-                "Simple List View In Android",
-                "Create List View Android",
-                "Android Example",
-                "List View Source Code",
-                "List View Array Adapter",
-                "Android Example List View"
-        };
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                getContext(),
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                values
-        );
-
         listView.addHeaderView(paddingView);
-        listView.setAdapter(adapter);
+        listView.setAdapter(dataAccess.getGarageAdapter());
 
         mFab = fragView.findViewById(R.id.garage_button_addUnit);
         mFab.setOnClickListener(new View.OnClickListener() {
@@ -113,7 +112,23 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         // mListBackgroundView makes ListView's background except header_base view.
         mListBackgroundView = fragView.findViewById(R.id.garage_background);
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String modelName = parent.getAdapter().getItem(position).toString();
+                Log.d("FragmentGarage", "onItemClick: " + modelName + " selected");
+                valueChange.enqueueModelNameChange(modelName);
+//                callback.setModelName(modelName);
+                callback.closeDrawer(GravityCompat.END);
+            }
+        });
+
         return fragView;
+    }
+
+    @Override
+    public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(fragmentView, savedInstanceState);
     }
 
     @Override
@@ -156,16 +171,6 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         }
     }
 
-    @Override
-    public final void onDownMotionEvent() {
-        // We don't use this callback in this pattern.
-    }
-
-    @Override
-    public final void onUpOrCancelMotionEvent(ScrollState scrollState) {
-        // We don't use this callbac
-    }
-
     private void showFab() {
         if (!mFabIsShown) {
             ViewPropertyAnimator.animate(mFab).cancel();
@@ -182,35 +187,14 @@ public class FragmentGarage extends BaseFragment implements ObservableScrollView
         }
     }
 
-//    protected void updateFlexibleSpace(int scrollY, View view) {
-//        int flexibleSpaceImageHeight = getResources().getDimensionPixelSize(R.dimen.flexible_space_image_height);
-//
-//        View recyclerViewBackground = view.findViewById(R.id.list_bg_main);
-//
-//        // Translate list background
-//        ViewHelper.setTranslationY(recyclerViewBackground, Math.max(0, -scrollY + flexibleSpaceImageHeight));
-//
-//        // Also pass this event to parent Activity
-////        FlexibleActivity parentActivity =
-////                (FlexibleActivity) getActivity();
-////        if (parentActivity != null) {
-////            parentActivity.onScrollChanged(scrollY, (ObservableRecyclerView) view.findViewById(R.id.scroll));
-////        }
-//    }
-
-    protected int getActionBarSize() {
-        Activity activity = getActivity();
-        if (activity == null) {
-            return 0;
-        }
-        TypedValue typedValue = new TypedValue();
-        int[] textSizeAttr = new int[]{R.attr.actionBarSize};
-        int indexOfAttrTextSize = 0;
-        TypedArray a = activity.obtainStyledAttributes(typedValue.data, textSizeAttr);
-
-        int actionBarSize = a.getDimensionPixelSize(indexOfAttrTextSize, -1);
-        a.recycle();
-
-        return actionBarSize;
+    @Override
+    public final void onDownMotionEvent() {
+        // We don't use this callback in this pattern.
     }
+
+    @Override
+    public final void onUpOrCancelMotionEvent(ScrollState scrollState) {
+        // We don't use this callbac
+    }
+
 }

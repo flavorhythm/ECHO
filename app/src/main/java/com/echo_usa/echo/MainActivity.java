@@ -1,12 +1,12 @@
 package com.echo_usa.echo;
 
-import android.graphics.drawable.Drawable;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatDelegate;
+import android.util.Log;
 import android.view.View;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -14,73 +14,126 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
 
-import java.util.List;
-
-import data.Card;
-import data.DataAccessObject;
 import fragment.BaseFragment;
-import fragment.FragmentCardDisplay;
+import fragment.FragmentRouter;
 import util.FragName;
 
 import static util.FragName.*;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener,
-        BaseFragment.Callback {
+public class MainActivity extends AppCompatActivity implements BaseFragment.Callback {
+    protected static final int GUIDE_REQ_CODE = 10;
 
-    private MenuItem menuItem;
     private DrawerLayout drawer;
+    private Toolbar toolbar;
 
-    private DataAccessObject dataAccess;
-
-    private boolean backStackHome = true;
-    private int containerId = R.id.main_frag_content;
-    private int adCardNum;
+    private static ValueChangeSupport valueChange;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        supportRequestWindowFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setElevation(0);
-
-        //brings actionbar to the front
-        findViewById(R.id.appbar_layout).bringToFront();
-        findViewById(R.id.main_frag_content).invalidate();
-
+        supportRequestWindowFeature(AppCompatDelegate.FEATURE_SUPPORT_ACTION_BAR_OVERLAY);
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
-        dataAccess = new DataAccessObject();
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        drawer = (DrawerLayout)findViewById(R.id.drawer_layout);
-        drawer.addDrawerListener(this);
+        valueChange = ((DataAccessApplication)getApplication()).getValueChangeSupport();
 
+        //From fragment callback
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setElevation(0);
+
+        drawer = (DrawerLayout)findViewById(R.id.main_drawer_layout);
+        setupToolbarToggle(toolbar);
+
+        zOrdering();
+
+        FragmentRouter.newInstance(MainActivity.this);
+        FragmentRouter.replaceFragment();
+    }
+
+    private void zOrdering() {
+        //brings No Model View to the front
+        findViewById(R.id.no_model_view).bringToFront();
+        findViewById(R.id.main_appbar).invalidate();
+        findViewById(R.id.main_frag_content).invalidate();
+
+        //brings actionbar to the front
+        findViewById(R.id.main_appbar).bringToFront();
+        findViewById(R.id.no_model_view).invalidate();
+        findViewById(R.id.main_frag_content).invalidate();
+    }
+
+    @Override
+    public FragmentManager getSupportFragmentManager() {
+        return super.getSupportFragmentManager();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    private void setupToolbarToggle(Toolbar toolbar) {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
             public void onDrawerOpened(View drawerView) {
-                if(drawerView.equals(findViewById(R.id.nav_menu))) {
+                if(drawerView.equals(findViewById(R.id.main_drawer_nav))) {
                     super.onDrawerOpened(drawerView);
                 }
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
-                if(drawerView.equals(findViewById(R.id.nav_menu))) {
+                if(drawerView.equals(findViewById(R.id.main_drawer_nav))) {
                     super.onDrawerClosed(drawerView);
+                }
+
+                switch(drawerView.getId()) {
+                    case R.id.main_drawer_garage:
+                        boolean isNotSelf = !valueChange.getSelectedModel().equals(valueChange.getEnqueuedModelName());
+                        if(isNotSelf) valueChange.setQueuedModelName();
+                        break;
+                    case R.id.main_drawer_nav:
+                        FragName fragName = FragmentRouter.getEnqueuedFragName();
+                        if(!fragName.equals(NULL)) {
+                            if(fragName == GUIDE) guideActivityIntent();
+                            //TODO: finish here
+                            else if(!FragmentRouter.replaceFragment()) Snackbar.make(
+                                    findViewById(R.id.main_drawer_layout),
+                                    "Already here!",
+                                    Snackbar.LENGTH_SHORT
+                            ).show();
+
+                            valueChange.setFragToDisplay(NULL);
+                        }
+
+//                        if(!valueChange.getFragToDisplay().equals(NULL)) {
+//                            FragName fragName = valueChange.getFragToDisplay();
+//                            if(fragName != null) {
+//                                if(fragName == GUIDE) guideActivityIntent();
+//                                else if(!FragmentRouter.replaceFragment(fragName)) Snackbar.make(
+//                                        findViewById(R.id.main_drawer_layout),
+//                                        "Already here!",
+//                                        Snackbar.LENGTH_SHORT
+//                                ).show();
+//
+//                                valueChange.setFragToDisplay(NULL);
+//                            }
+//                        }
+
+                        break;
+                    default:
+                        break;
                 }
             }
 
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-                if(drawerView.equals(findViewById(R.id.nav_menu))) {
+                if(drawerView.equals(findViewById(R.id.main_drawer_nav))) {
                     super.onDrawerSlide(drawerView, slideOffset);
                 }
             }
@@ -88,40 +141,23 @@ public class MainActivity extends AppCompatActivity
 
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
-        NavigationView navigationView = (NavigationView)findViewById(R.id.nav_menu);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        getSupportFragmentManager()
-                .beginTransaction()
-                .add(containerId, dataAccess.getThisFrag(HOME), HOME.toString())
-                .commit();
     }
 
     @Override
     public void onBackPressed() {
-        if (drawer.isDrawerOpen(GravityCompat.START)) {drawer.closeDrawer(GravityCompat.START);}
-        else if (drawer.isDrawerOpen(GravityCompat.END)) {drawer.closeDrawer(GravityCompat.END);}
-        else {super.onBackPressed(); backStackHome = true;}
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        if(dataAccess.isFragVisible(item.getItemId())) {
-            menuItem = null;
-        } else {
-            menuItem = item;
+        if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START);
+        else if (drawer.isDrawerOpen(GravityCompat.END)) drawer.closeDrawer(GravityCompat.END);
+        else if(!FragmentRouter.isThisFragDisplayed(HOME)) FragmentRouter.replaceFragment(HOME);
+        else {
+            FragmentRouter.setDisplayedFragName(NULL);
+            super.onBackPressed();
         }
-
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu rightDrawerToggle) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, rightDrawerToggle);
         return true;
     }
 
@@ -136,41 +172,32 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public void onDrawerClosed(View drawerView) {
-        if(menuItem != null) {
-            FragName fragName = FragName.getNameById(menuItem.getItemId());
-            if(fragName != null) {fragTrans(fragName);}
+    private void guideActivityIntent() {
+        Intent intent = new Intent(MainActivity.this, FirstTimeGuideActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivityForResult(intent, GUIDE_REQ_CODE, new Bundle());
 
-            menuItem = null;
-        }
+        overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out);
     }
 
-    private void fragTrans(FragName fragName) {
-        FragmentManager fragManager = getSupportFragmentManager();
-        FragmentTransaction fragTrans = fragManager.beginTransaction();
-        fragTrans.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        FragmentRouter.newInstance(MainActivity.this);
 
-        if(backStackHome) {
-            fragTrans.addToBackStack(HOME.toString());
+        if(resultCode == RESULT_OK) {
+            switch(requestCode) {
+                case GUIDE_REQ_CODE:
+                    FragName fragName = FragName.valueOf(data.getDataString().toUpperCase());
+
+                    if(fragName != null) {
+                        if(FragmentRouter.isThisFragDisplayed(HOME) && fragName.equals(HOME)) break;
+                        else FragmentRouter.replaceFragment(fragName);
+                    }
+
+                    break;
+            }
         }
-
-        if(fragName == HOME && !backStackHome) {
-            fragManager.popBackStack();
-            backStackHome = true;
-        } else {backStackHome = false;}
-
-        if(fragName == CARD_DISP) {
-            ((FragmentCardDisplay)dataAccess.getThisFrag(fragName)).posOfCard(adCardNum);
-        }
-
-        fragTrans.replace(
-                containerId,
-                dataAccess.getThisFrag(fragName),
-                fragName.toString()
-        );
-
-        fragTrans.commit();
     }
 
     @Override
@@ -178,27 +205,25 @@ public class MainActivity extends AppCompatActivity
         return new View.OnClickListener() {
             @Override
             public void onClick(View card) {
+                Intent intent = new Intent(MainActivity.this, CardDisplayActivity.class);
+
                 if(card.getTag() instanceof Integer) {
-                    adCardNum = (Integer)card.getTag();
+                    intent.putExtra("adCardNum", (Integer)card.getTag());
                 }
 
-                fragTrans(CARD_DISP);
+                intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out);
             }
         };
     }
 
     @Override
-    public List<Card> getCards(int cardsForPage) {return dataAccess.getCards(cardsForPage);}
+    public void setToolbar(Toolbar toolbar) {this.toolbar = toolbar;}
 
     @Override
-    public Integer[] getAdsForHeader() {return dataAccess.getAdsForHeader();}
-
-    @Override
-    public void onDrawerStateChanged(int newState) {}
-
-    @Override
-    public void onDrawerSlide(View drawerView, float slideOffset) {}
-
-    @Override
-    public void onDrawerOpened(View drawerView) {}
+    public void closeDrawer(int gravity) {
+        Log.d("MainActivity", "drawer closed");
+        drawer.closeDrawer(gravity);
+    }
 }

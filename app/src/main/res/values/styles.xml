@@ -4,27 +4,32 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowTranslucentStatus">true</item>
+        <!--<item name="android:windowTranslucentStatus">true</item>-->
         <item name="android:actionBarStyle">@style/MyActionBar</item>
+        <item name="android:activatedBackgroundIndicator">@drawable/drawer_item_select</item>
 
         <!-- Support library compatibility -->
         <item name="actionBarStyle">@style/MyActionBar</item>
         <item name="drawerArrowStyle">@style/MyDrawerToggle</item>
     </style>
 
-    <style name="AppTheme.NoActionBar">
+    <style name="NoActionBar" parent="AppTheme">
         <item name="windowActionBar">true</item>
         <item name="windowNoTitle">true</item>
     </style>
 
     <!-- ACTION BAR STYLES -->
     <style name="MyActionBar" parent="@style/Widget.AppCompat.ActionBar">
-        <item name="android:background">@drawable/app_bar_overlay</item>
+        <item name="android:background">@drawable/app_bar_transition</item>
         <item name="android:windowActionBarOverlay">true</item>
 
         <!-- Support library compatibility -->
-        <item name="background">@drawable/app_bar_overlay</item>
+        <item name="background">@drawable/app_bar_transition</item>
         <item name="windowActionBarOverlay">true</item>
+    </style>
+
+    <style name="ToolbarHomeAsUpArrow" parent="AppTheme">
+        <item name="android:textColorSecondary">#FFFFFF</item>
     </style>
 
     <style name="MyDrawerToggle" parent="@style/Widget.AppCompat.DrawerArrowToggle">
@@ -34,4 +39,8 @@
     <style name="MyToolBar">
         <item name="titleTextColor">#FFFFFF</item>
     </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

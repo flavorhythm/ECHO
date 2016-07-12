@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.echo_usa.echo.R;
 
@@ -46,7 +47,7 @@ public class DocumentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onClick(View v) {
-        //TODO: Opens PDF of item
+        Toast.makeText(v.getContext(), "clicked", Toast.LENGTH_SHORT).show();
     }
 
     public static class ItemViewHolder extends RecyclerView.ViewHolder {

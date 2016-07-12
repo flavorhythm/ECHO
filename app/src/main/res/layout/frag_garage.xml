@@ -6,13 +6,13 @@
     <ImageView
         android:id="@+id/garage_header"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/flexible_space_image_height"
+        android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:src="@drawable/header" />
+        android:src="@drawable/drawer_header" />
     <View
         android:id="@+id/garage_overlay"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/flexible_space_image_height"
+        android:layout_height="match_parent"
         android:background="?attr/colorPrimary" />
     <View
         android:id="@+id/garage_background"
@@ -23,11 +23,13 @@
         android:id="@+id/garage_recycler"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
+        android:listSelector="?android:activatedBackgroundIndicator"
         android:scrollbars="vertical"/>
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/garage_button_addUnit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="center"
-        android:layout_gravity="start|top"/>
+        android:layout_gravity="start|top"
+        android:src="@drawable/add_new_unit"/>
 </FrameLayout>

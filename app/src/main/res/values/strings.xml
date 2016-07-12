@@ -14,4 +14,6 @@
     <string name="slide_menu_contact">Contact Us</string>
     <string name="menu_garage">My Garage</string>
     <string name="slide_menu_home">Home</string>
+    <string name="title_activity_first_time_guide">FirstTimeGuideActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>

@@ -1,6 +1,9 @@
 package data;
 
+import android.content.Context;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.widget.ArrayAdapter;
 
 import com.echo_usa.echo.R;
 
@@ -12,7 +15,6 @@ import java.util.Map;
 import fragment.FragmentCardDisplay;
 import fragment.FragmentContact;
 import fragment.FragmentDocuments;
-import fragment.FragmentGuide;
 import fragment.FragmentHome;
 import fragment.FragmentLocator;
 import fragment.FragmentMaintenance;
@@ -31,13 +33,17 @@ public class DataAccessObject {
 
     private List<Card> homeCardsList;
     private List<Card> docsCardsList;
+    private List<Specs> specsList;
     private Map<FragName, Fragment> fragMap;
 
-    public DataAccessObject() {
+    private ArrayAdapter<String> garageUnitAdapter;
+
+    public DataAccessObject(Context context) {
         homeCardsList = new ArrayList<>();
         docsCardsList = new ArrayList<>();
+        specsList = new ArrayList<>();
 
-        buildList();
+        buildList(context);
         buildFragmentList();
     }
 
@@ -49,28 +55,15 @@ public class DataAccessObject {
         } else return null;
     }
 
-    public Integer[] getAdsForHeader() {
-        return new Integer[] {
-                R.drawable.header,
-                R.drawable.header,
-                R.drawable.header,
-                R.drawable.header
-        };
+    public ArrayAdapter<String> getGarageAdapter() {
+        return garageUnitAdapter;
     }
 
-    public Fragment getThisFrag(FragName key) {return fragMap.get(key);}
-
-    public boolean isFragVisible(FragName fragName) {
-        return fragMap.get(fragName).isVisible();
+    public List<Specs> getSpecsList() {
+        return specsList;
     }
 
-    public boolean isFragVisible(int menuId) {
-        FragName fragName = FragName.getNameById(menuId);
-
-        return isFragVisible(fragName);
-    }
-
-    private void buildList() {
+    private void buildList(Context context) {
         {
             String[] titleList = new String[] {
                     "Get the specs of this unit",
@@ -82,12 +75,12 @@ public class DataAccessObject {
             };
 
             Integer[] drawableList = new Integer[] {
-                    R.drawable.specs,
-                    R.drawable.locator,
-                    R.drawable.sale,
-                    R.drawable.videos,
-                    R.drawable.can,
-                    R.drawable.suggestions
+                    R.drawable.ads_placeholder,
+                    R.drawable.ads_placeholder,
+                    R.drawable.ads_placeholder,
+                    R.drawable.ads_placeholder,
+                    R.drawable.ads_placeholder,
+                    R.drawable.ads_placeholder
             };
 
             for(int i = 0; i < titleList.length; i++) {
@@ -118,6 +111,77 @@ public class DataAccessObject {
                 );
             }
         }
+
+        {
+            String[] garageUnitList = new String[] {
+                    "Android List View",
+                    "Adapter implementation",
+                    "Simple List View In Android",
+                    "Create List View Android",
+                    "Android Example",
+                    "List View Source Code",
+                    "List View Array Adapter",
+                    "Adapter implementation",
+                    "Simple List View In Android",
+                    "Create List View Android",
+                    "Android Example",
+                    "List View Source Code",
+                    "List View Array Adapter",
+                    "Android Example List View"
+            };
+
+            garageUnitAdapter = new ArrayAdapter<>(
+                    context,
+                    android.R.layout.simple_list_item_1,
+                    garageUnitList
+            );
+        }
+
+        {
+            String[] specLabels = new String[] {
+                    "Engine Displacement (cc)",
+                    "Carburetor",
+                    "Fuel Capacity (fl. oz.)",
+                    "Shaft Length (in)",
+                    "Shaft Type",
+                    "Starting System",
+                    "Cutting Head",
+                    "Cutting Swath (in)",
+                    "Shield",
+                    "Drive Shaft",
+                    "Nylon Line (in dia.)",
+                    "Dry Weight (lbs)",
+                    "Dry Weight (lbs)",
+                    "Consumer Warranty",
+                    "Commercial Warranty",
+                    "Rental Warranty"
+            };
+
+            String[] specValues = new String[] {
+                    "21.2",
+                    "Rotary",
+                    "14.9",
+                    "48",
+                    "Curved",
+                    "i-30",
+                    "Rapid-Loader",
+                    "16",
+                    "Stnd. Shield",
+                    "4-Layer Cable",
+                    "0.080 Cross-Fire",
+                    "10.1",
+                    "9.6",
+                    "5 years",
+                    "2 years",
+                    "90 days"
+            };
+
+            if(specValues.length == specLabels.length) {
+                for(int i = 0; i < specLabels.length; i++) {
+                    specsList.add(new Specs(specLabels[i], specValues[i]));
+                }
+            }
+        }
     }
 
     private Map<FragName, Fragment> buildFragmentList() {
@@ -125,7 +189,6 @@ public class DataAccessObject {
 
         fragMap.put(HOME, FragmentHome.newInstance());
         fragMap.put(CONTACT, FragmentContact.newInstance());
-        fragMap.put(GUIDE, FragmentGuide.newInstance());
         fragMap.put(LOCATOR, FragmentLocator.newInstance());
         fragMap.put(MAINT, FragmentMaintenance.newInstance());
         fragMap.put(SETTINGS, FragmentSettings.newInstance());

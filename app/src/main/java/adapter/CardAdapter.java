@@ -40,6 +40,8 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int VIEW_TYPE_DIVIDER = 1;
     private static final int VIEW_TYPE_ITEM = 2;
 
+    private static final int DIVIDER_HEIGHT = 150;
+
     private List<Card> cardsList;
     private View header;
     private View divider;
@@ -65,9 +67,10 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private void buildDivider() {
         divider.setLayoutParams(
-                new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, 50)
+                new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, DIVIDER_HEIGHT)
         );
-        divider.setBackgroundResource(R.color.echo_orange);
+//        divider.setBackgroundResource(R.color.echo_orange);
+        divider.setBackgroundResource(android.R.color.transparent);
     }
 
     @Override
@@ -98,14 +101,6 @@ public class CardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false)
                 );
         }
-//        if(viewType == VIEW_TYPE_HEADER) {
-//            return new HeaderViewHolder(header);
-//        } else {
-//            int layoutRes = R.layout.card_home;
-//            return new ItemViewHolder(
-//                    LayoutInflater.from(parent.getContext()).inflate(layoutRes, parent, false)
-//            );
-//        }
     }
 
     @Override

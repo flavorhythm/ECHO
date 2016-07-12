@@ -5,6 +5,36 @@
     android:gravity="center_horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
+    <!--<android.support.v7.widget.CardView-->
+        <!--xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--xmlns:card_view="http://schemas.android.com/apk/res-auto"-->
+        <!--android:id="@+id/card_home"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--card_view:cardUseCompatPadding="true"-->
+        <!--card_view:cardElevation="3dp"-->
+        <!--card_view:cardCornerRadius="2dp">-->
+        <!--<FrameLayout-->
+            <!--android:layout_width="@dimen/card_home_imageWidth"-->
+            <!--android:layout_height="@dimen/card_home_imageHeight">-->
+            <!--<ImageView-->
+                <!--android:id="@+id/card_home_image"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:scaleType="centerCrop" />-->
+            <!--<TextView-->
+                <!--android:id="@+id/card_home_text"-->
+                <!--android:padding="12dp"-->
+                <!--android:gravity="top"-->
+                <!--android:layout_gravity="bottom"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="150dp"-->
+                <!--android:background="#ce3e3e3e"-->
+
+                <!--android:text="testing!"-->
+                <!--android:textSize="24sp"-->
+                <!--android:textColor="@android:color/white"/>-->
+        <!--</FrameLayout>-->
     <android.support.v7.widget.CardView
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:card_view="http://schemas.android.com/apk/res-auto"
@@ -27,10 +57,11 @@
             <TextView
                 android:id="@+id/card_home_text"
                 android:padding="12dp"
-                android:gravity="center_vertical"
+                android:gravity="top"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="testing!"/>
+                android:layout_height="100dp"
+                android:text="testing!"
+                android:background="@android:color/white"/>
         </LinearLayout>
     </android.support.v7.widget.CardView>
 </LinearLayout>
