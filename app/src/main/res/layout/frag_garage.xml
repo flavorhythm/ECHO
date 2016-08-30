@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/garage_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -18,18 +20,62 @@
         android:id="@+id/garage_background"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/background" />
-    <com.github.ksoichiro.android.observablescrollview.ObservableListView
-        android:id="@+id/garage_recycler"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:listSelector="?android:activatedBackgroundIndicator"
-        android:scrollbars="vertical"/>
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/garage_button_addUnit"
+        android:background="@color/bg_garage" />
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:scaleType="center"
-        android:layout_gravity="start|top"
-        android:src="@drawable/add_new_unit"/>
+        android:layout_height="match_parent">
+        <com.github.ksoichiro.android.observablescrollview.ObservableListView
+            android:id="@+id/garage_recycler"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_gravity="top"
+            android:dividerHeight="0dp"
+            android:divider="#FFFFFF"
+            android:listSelector="?android:activatedBackgroundIndicator"
+            android:layout_above="@+id/garage_button_addUnit"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/item_garage_list"/>
+        <ImageView
+            android:id="@+id/garage_bottom_shadow"
+            android:src="@drawable/bg_model_info_upper_fade"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:layout_alignBottom="@id/garage_recycler"/>
+        <Button
+            style="@style/Button.Raised"
+            android:id="@+id/garage_button_addUnit"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginEnd="6dp"
+            android:layout_alignParentEnd="true"
+            android:text="Register New Unit"
+            android:layout_alignParentBottom="true"/>
+    </RelativeLayout>
+    <!--<Button-->
+        <!--style="?android:buttonBarButtonStyle"-->
+        <!--android:id="@+id/garage_buttton_addUnit"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:textAlignment="textEnd"-->
+        <!--android:text="Register New Unit"-->
+        <!--android:background="#FFFFFF"-->
+        <!--android:layout_gravity="bottom|end"/>-->
+    <!--<widget.CustomFloatingActionButton-->
+        <!--android:id="@+id/garage_button_addUnit"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:scaleType="center"-->
+        <!--android:layout_gravity="start|top"-->
+        <!--android:src="@drawable/add_new_unit"/>-->
+    <!--<android.support.design.widget.FloatingActionButton-->
+        <!--android:id="@+id/garage_button_addUnit"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:scaleType="center"-->
+        <!--android:layout_gravity="start|top"-->
+        <!--android:src="@drawable/add_new_unit"/>-->
 </FrameLayout>

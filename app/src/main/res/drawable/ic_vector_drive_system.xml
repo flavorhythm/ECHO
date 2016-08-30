@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="75"
+    android:viewportHeight="75">
+    <!--Carb-->
+    <!--<path android:fillColor="#ffffff"-->
+        <!--android:pathData="M59.5,13.5-->
+                          <!--l2,2-->
+                          <!--l-3,3-->
+                          <!--l-2,-2-->
+                          <!--l3,-3-->
+                          <!--z-->
+                          <!--m-7,7-->
+                          <!--l2,2-->
+                          <!--l-27,27-->
+                          <!--a1,1 0 0,1 -2,-2-->
+                          <!--l27,-27-->
+                          <!--z"/>-->
+    <path android:fillColor="#96000000"
+        android:pathData="M33,32
+                          l-6,12
+                          l-2,2
+                          a4,4 45 0,0 7,7
+                          l2,-2
+                          l12,-6
+                          A10,6 45 0,0 33,32
+                          z
+                          m7.2,2.3
+                          a10,6 45 0,1 3.5,3.5
+                          l-12.5,12.5
+                          a3,3 0 1,1 -3.5,-3.5
+                          z"/>
+    <path android:fillColor="#ffffff"
+        android:pathData="M60.5,15.5
+                          l2,2
+                          l-32,32
+                          a2.2,2.2 0 1,1 -2,-2
+                          l32,-32
+                          z"/>
+    <path android:fillColor="#82ffffff"
+        android:pathData="M24,49
+                          h-1
+                          a7,6 0 0,1 -8,-8
+                          l-1,0.5
+                          a8,7 0 0,0 9,8
+                          z
+                          m10,2
+                          h1
+                          a7,6 0 0,1 8,8
+                          l0.5,0.5
+                          a8,7 0 0,0 -9,-9
+                          z"/>
+    <!--<path android:fillColor="#96000000"-->
+        <!--android:pathData="M51.5,13.5-->
+                          <!--l10,10-->
+                          <!--l-2,2-->
+                          <!--h-6-->
+                          <!--l-2,2-->
+                          <!--h-1-->
+                          <!--l3,-3-->
+                          <!--h3-->
+                          <!--l1,-1-->
+                          <!--l-6,-6-->
+                          <!--l-1,1-->
+                          <!--v3-->
+                          <!--l-3,3-->
+                          <!--v-1-->
+                          <!--l2,-2-->
+                          <!--v-6-->
+                          <!--l2,-2-->
+                          <!--z"/>-->
+</vector>

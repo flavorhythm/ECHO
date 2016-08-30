@@ -8,20 +8,30 @@ import com.echo_usa.echo.R;
 public enum FragName {
 
     //TODO: remove "string" values. Completely unnecessary
-    NULL("null"),
-    HOME("home"),
-    DOCS("docs"),
-    MAINT("maint"),
-    SPECS("specs"),
-    GUIDE("guide"),
-    LOCATOR("locator"),
-    SETTINGS("settings"),
-    CONTACT("contact"),
-    CARD_DISP("card_disp");
+    BLANK("blank_container"),
+    HOME("Home"),
+    GUIDE("Beginner's Guide"),
+    LOCATOR("Dealer Locator"),
+    SETTINGS("Settings"),
+    CONTACT("Contact Us"),
+
+    MODEL_INFO("model_info"),
+    DOCS("Documentation"),
+    MAINT("Maintenance"),
+    SPECS("Unit Specs");
 
     String value;
 
     FragName(String value) {this.value = value;}
+
+    public boolean isModelInfo() {
+        switch(this) {
+            case DOCS: case MAINT: case SPECS:
+                return true;
+        }
+
+        return false;
+    }
 
     @Override
     public String toString() {return this.value;}
@@ -40,10 +50,10 @@ public enum FragName {
                 return GUIDE;
             case R.id.slide_locator:
                 return LOCATOR;
-//            case R.id.slide_settings:
-//                return SETTINGS;
-//            case R.id.slide_contact:
-//                return CONTACT;
+            case R.id.slide_settings:
+                return SETTINGS;
+            case R.id.slide_contact:
+                return CONTACT;
             default:
                 return null;
         }

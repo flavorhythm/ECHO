@@ -16,4 +16,11 @@
     <string name="slide_menu_home">Home</string>
     <string name="title_activity_first_time_guide">FirstTimeGuideActivity</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="label_address">Address</string>
+    <string name="label_phone">Phone Number</string>
+    <string name="label_web">Website</string>
+    <string name="label_chat">Ask a Question/Chat</string>
+    <string name="service_email">echohelp@echo-usa.com</string>
+    <string name="label_app_email">App Feedback</string>
+    <string name="V58_URL">http://www.echocordless.com/</string>
 </resources>

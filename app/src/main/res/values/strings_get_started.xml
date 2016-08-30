@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="get_started_content">
+        <font fgcolor="#FF545028" size="20">Getting Started</font>
+        \n
+        Before You Can Start Up Your Equipment, You’ll Need the Right Fuel
+        \n
+        ECHO PowerFuel™ is a pre-mixed fuel, containing 93 octane gas and oil, that’s ready-to-use right out of the can. With no ethanol, PowerFuel is specifically developed at a 50:1 ratio and is the only pre-mixed fuel that uses ECHO Red Armor Oil™. ECHO PowerFuel is recommended for use in all air-cooled, 2-stroke engines. It facilitates proper break-in and helps extend the life of your equipment. It even features a fuel stabilizer that keeps the fuel stable and useable for up to two years after opening, so you never have to worry about using stale fuel.
+        \n
+        ECHO PowerFuel™: ECHO PowerFuel™ is a pre-mixed fuel, containing 93 octane gas and oil, that’s ready-to-use right out of the can. With no ethanol, PowerFuel is specifically developed at a 50:1 ratio and is the only pre-mixed fuel that uses ECHO Red Armor Oil™. ECHO PowerFuel is recommended for use in all air-cooled, 2-stroke engines. It facilitates proper break-in and helps extend the life of your equipment. It even features a fuel stabilizer that keeps the fuel stable and useable for up to two years after opening, so you never have to worry about using stale fuel.
+        \n
+        Mixing Your Own Fuel: If you want to mix your own fuel, you’ll still need the right fuel and, especially, the right fuel mix. ECHO outdoor power equipment (and really all power equipment) is designed to tolerate up to 10%% ethanol blended fuel and can’t compensate for higher concentrations of ethanol, so it’s very important to the life of your equipment that you buy only the recommended fuel: 89 Octane gasoline with no more than 10%% ethanol or gas with no ethanol at all. The wrong fuel can be so detrimental to the engines that using alternative fuels in ECHO 2-stroke engines will void your engine warranty over time. You’ll also want quality mix oil that is JASO FD and ISO-L-EGD rated. Both ECHO PowerBlend™ and ECHO Red Armor oils carry this rating. Red Armor Oil uses powerful detergents that quickly remove performance-robbing carbon deposits the first use and protects against future buildups.
+        \n
+        Check out this video for proper fuel mixing techniques and check out this infographic about how to get the most of your equipment when mixing your own fuel and oil.
+    </string>
+    <string name="safety_content"></string>
+    <string name="chain_saw_content"></string>
+    <string name="blower_content"></string>
+    <string name="trimmer_content"></string>
+</resources>

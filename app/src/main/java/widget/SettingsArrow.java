@@ -20,6 +20,9 @@ public class SettingsArrow extends ImageView {
     public static final int ARROW_STATE_DOWN = 0;
     public static final int ARROW_STATE_UP = 1;
 
+    private static final int arrowUpRes = R.drawable.ic_vector_arrow_up;
+    private static final int arrowDownRes = R.drawable.ic_vector_arrow_down;
+
     private int arrowState = ARROW_STATE_DOWN;
 
     private final Animation rotationUp = AnimationUtils.loadAnimation(getContext(), R.anim.rotate_settings_arrow_up);
@@ -50,16 +53,17 @@ public class SettingsArrow extends ImageView {
         init();
     }
 
-    public boolean isArrowDown() {
-        return arrowState == ARROW_STATE_DOWN;
-    }
+    public boolean isArrowDown() {return arrowState == ARROW_STATE_DOWN;}
 
-//    public boolean isArrowDown(int arrowState) {
-//        return arrowState == ARROW_STATE_DOWN;
-//    }
+    public void setDrawerMenu(Menu drawerMenu) {this.drawerMenu = drawerMenu;}
 
-    public void setDrawerMenu(Menu drawerMenu) {
-        this.drawerMenu = drawerMenu;
+    public void resetMenu() {
+        if(arrowState == ARROW_STATE_UP) {
+            arrowState = ARROW_STATE_DOWN;
+
+            setImageDrawable(ContextCompat.getDrawable(getContext(), arrowDownRes));
+            toggleMenuVisibility();
+        }
     }
 
     @Override
@@ -75,43 +79,35 @@ public class SettingsArrow extends ImageView {
         //when current arrow state is down, set arrow to arrow up drawable and change state
         //variable accordingly
         if(isArrowDown()) {
-            setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.setting_arrow_up));
+            setImageDrawable(ContextCompat.getDrawable(getContext(), arrowUpRes));
             arrowState = ARROW_STATE_UP;
         } else {
-            setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.setting_arrow_down));
+            setImageDrawable(ContextCompat.getDrawable(getContext(), arrowDownRes));
             arrowState = ARROW_STATE_DOWN;
         }
 
-        drawerMenu.setGroupVisible(R.id.nav_menu_group_home, isArrowDown());
-        drawerMenu.setGroupVisible(R.id.nav_menu_group_resources, isArrowDown());
-        drawerMenu.setGroupVisible(R.id.nav_menu_group_settings, !isArrowDown());
+        toggleMenuVisibility();
 
         setOnClickListener(clickToAnimateListener);
     }
 
-//    public Animation getAnimationFor(int arrowState) {
-//        rotationUp.setRepeatCount(0);
-//        rotationDown.setRepeatCount(0);
-//
-//        if (isArrowDown(arrowState)) {
-//            return rotationUp;
-//        } else {
-//            return rotationDown;
-//        }
-//    }
+    private void toggleMenuVisibility() {
+        drawerMenu.setGroupVisible(R.id.nav_menu_group_home, isArrowDown());
+        drawerMenu.setGroupVisible(R.id.nav_menu_group_resources, isArrowDown());
+        drawerMenu.setGroupVisible(R.id.nav_menu_group_settings, !isArrowDown());
+    }
 
     private void init() {
+        setImageResource(arrowDownRes);
+
         rotationUp.setRepeatCount(0);
         rotationDown.setRepeatCount(0);
 
         clickToAnimateListener = new OnClickListener() {
             @Override
             public void onClick(View settingsArrow) {
-                if(isArrowDown()) {
-                    settingsArrow.startAnimation(rotationUp);
-                } else {
-                    settingsArrow.startAnimation(rotationDown);
-                }
+                if(isArrowDown()) settingsArrow.startAnimation(rotationUp);
+                else settingsArrow.startAnimation(rotationDown);
             }
         };
 

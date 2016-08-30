@@ -2,18 +2,16 @@ package fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.echo_usa.echo.R;
 
 /**
  * Created by zyuki on 6/7/2016.
  */
-public class FragmentCardDisplay extends BaseFragment {
+public class FragmentCardDisplay extends FragmentBase {
     private static FragmentCardDisplay thisFragment;
 
     public static final String CARD_CONTENT_KEY = "content_pos";
@@ -26,13 +24,10 @@ public class FragmentCardDisplay extends BaseFragment {
     }
 
     @Override
-    public void updateFragContent(String modelName) {}
-
-    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        this.fragName = "card_display";
+//        this.fragName = "card_display";
     }
 
     @Nullable

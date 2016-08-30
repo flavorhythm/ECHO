@@ -9,7 +9,7 @@
             <!--app:showAsAction="always"/>-->
         <item
             android:id="@+id/menu_garage"
-            android:icon="@drawable/ic_view_list"
+            android:icon="@drawable/ic_vector_garage_drawer"
             android:title="@string/menu_garage"
             android:orderInCategory="100"
             app:showAsAction="always" />

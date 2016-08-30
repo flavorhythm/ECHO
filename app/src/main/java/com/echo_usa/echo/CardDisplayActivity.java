@@ -8,9 +8,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import fragment.BaseFragment;
+import fragment.FragmentBase;
 
-public class CardDisplayActivity extends AppCompatActivity implements BaseFragment.Callback {
+public class CardDisplayActivity extends AppCompatActivity implements FragmentBase.Callback {
     private Toolbar toolbar;
 
     @Override
@@ -21,9 +21,9 @@ public class CardDisplayActivity extends AppCompatActivity implements BaseFragme
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         supportRequestWindowFeature(AppCompatDelegate.FEATURE_SUPPORT_ACTION_BAR_OVERLAY);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+//        getWindow().getDecorView().setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_card_display);
@@ -31,10 +31,10 @@ public class CardDisplayActivity extends AppCompatActivity implements BaseFragme
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(
-                ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.ic_clear)
+                ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.ic_vector_clear)
         );
         getSupportActionBar().setBackgroundDrawable(
-                ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.app_bar_fragments)
+                ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.app_bar_solid)
         );
     }
 
@@ -57,6 +57,9 @@ public class CardDisplayActivity extends AppCompatActivity implements BaseFragme
     }
 
     @Override
+    public void scrollToolbar(int scrollY, int actionBarSize, int vertThreshold) {}
+
+    @Override
     public void setToolbar(Toolbar toolbar) {this.toolbar = toolbar;}
 
     @Override
@@ -64,4 +67,10 @@ public class CardDisplayActivity extends AppCompatActivity implements BaseFragme
 
     @Override
     public View.OnClickListener getCardListnener() {return null;}
+
+
+    @Override
+    public void setGarageBtnVisibility(boolean visible) {
+
+    }
 }

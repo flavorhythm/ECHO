@@ -24,22 +24,22 @@
                 app:elevation="0dp"
                 style="@style/MyActionBar">
                 <fragment
-                    android:name="fragment.FragmentToolbar"
+                    android:name="fragment.static_fragment.FragmentToolbar"
                     android:id="@+id/main_toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     tools:layout="@layout/frag_toolbar"/>
                 <!--<android.support.v7.widget.Toolbar-->
-                    <!--android:id="@+id/main_toolbar"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="?attr/actionBarSize"-->
-                    <!--style="@style/MyToolBar"/>-->
+                <!--android:id="@+id/main_toolbar"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="?attr/actionBarSize"-->
+                <!--style="@style/MyToolBar"/>-->
             </android.support.design.widget.AppBarLayout>
-            <include
-                android:id="@+id/no_model_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                layout="@layout/no_model_selection" />
+            <!--<include-->
+                <!--android:id="@+id/no_model_view"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="match_parent"-->
+                <!--layout="@layout/no_model_selection" />-->
             <FrameLayout
                 android:id="@+id/main_frag_content"
                 android:layout_width="match_parent"
@@ -47,14 +47,14 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
         </RelativeLayout>
         <fragment
-            android:name="fragment.FragmentNav"
+            android:name="fragment.static_fragment.FragmentNav"
             android:id="@+id/main_drawer_nav"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             tools:layout="@layout/frag_nav"/>
         <fragment
-            android:name="fragment.FragmentGarage"
+            android:name="fragment.static_fragment.FragmentGarage"
             android:id="@+id/main_drawer_garage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+    <TextView
+        android:id="@+id/card_med_title_left"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choosing the Right Chain Saw"
+        android:textSize="18sp"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/card_med_image_left"/>
+    <TextView
+        android:id="@+id/card_med_subtitle_left"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Testing!"
+        android:textSize="14sp"
+        android:layout_below="@+id/card_med_title_left"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/card_med_image_left"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@id/card_med_image_left"
+        android:background="@drawable/bg_top_border">
+        <Button
+            style="?android:buttonBarButtonStyle"
+            android:id="@+id/card_med_btn_left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:text="Learn More"/>
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/card_med_image_left"
+        android:layout_width="120dp"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:layout_alignParentEnd="true"/>
+</RelativeLayout>

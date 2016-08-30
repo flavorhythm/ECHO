@@ -12,13 +12,13 @@ import util.FragName;
  */
 public class ValueChangeSupport {
     public static final String PROPERTY_MODEL = "ModelNameChange";
-    public static final String PROPERTY_MENU_ITEM = "MenuItemChange";
+    public static final String NO_SELECTION = "no_selection";
 
     private PropertyChangeSupport propertyChange;
-    private String modelName = "no_selection";
+    private String modelName = NO_SELECTION;
     private String queuedModelName;
 
-    private FragName fragToDisplay = FragName.NULL;
+    private FragName fragToDisplay = FragName.BLANK;
 
     public ValueChangeSupport() {
         propertyChange = new PropertyChangeSupport(this);
@@ -44,17 +44,18 @@ public class ValueChangeSupport {
     public String getEnqueuedModelName() {return queuedModelName;}
 
     public void setQueuedModelName() {
+        //TODO: error out?
         if(queuedModelName != null) setSelectedModel(queuedModelName);
     }
-
-    public FragName getFragToDisplay() {return fragToDisplay;}
-
-    public void setFragToDisplay(FragName fragToDisplay) {
-        FragName previousFrag = this.fragToDisplay;
-        this.fragToDisplay = fragToDisplay;
-
-        propertyChange.firePropertyChange(PROPERTY_MENU_ITEM, previousFrag, fragToDisplay);
-    }
+//
+//    public FragName getFragToDisplay() {return fragToDisplay;}
+//
+//    public void setFragToDisplay(FragName fragToDisplay) {
+//        FragName previousFrag = this.fragToDisplay;
+//        this.fragToDisplay = fragToDisplay;
+//
+//        propertyChange.firePropertyChange(PROPERTY_MENU_ITEM, previousFrag, fragToDisplay);
+//    }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         Log.v("ValueChangeSupport", "addPropertyChangeListener: " + listener.toString());

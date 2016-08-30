@@ -4,7 +4,6 @@ import android.app.Application;
 import android.util.Log;
 
 import data.DataAccessObject;
-import fragment.BaseFragment;
 
 /**
  * Created by ZYuki on 6/28/2016.

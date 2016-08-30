@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cordless_info">Looking for information on 58V Cordless Products?</string>
+    <string name="assistance_equipment">Need further assistance with your equipment?</string>
+    <string name="echo_address">400 Oakwood Road, Lake Zurich, IL 60047</string>
+    <string name="echo_phone">Toll Free:(800) 432-ECHO (3246)</string>
+    <string name="echo_chat">Prefer to chat online? Go here</string>
+    <string name="chat_URL">http://www.echo-usa.com/faqs/?FAQPage=Quest</string>
+    <string name="website_info">Can\'t find the information you\'re looking for?</string>
+    <string name="echo_URL">http://www.echo-usa.com</string>
+    <string name="app_feedback">Leave feedback for app? Send us an email or rate us on the App Store</string>
+    <string name="fedback_email">zeno_yuki@echo-usa.com</string>
+    <string name="contact_content">
+
+        \n
+        Can\'t find the information you\'re looking for? Try our website
+        \n
+        Feedback on the app?
+        \n
+        Leave a review or email us at:
+    </string>
+</resources>

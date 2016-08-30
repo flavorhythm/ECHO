@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+    <ImageView
+        android:id="@+id/card_med_image_right"
+        android:layout_width="120dp"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:layout_alignParentStart="true"/>
+    <TextView
+        android:id="@+id/card_med_title_right"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/card_med_image_right"
+        android:text="set text"
+        android:textSize="18sp"/>
+    <TextView
+        android:id="@+id/card_med_subtitle_right"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Testing!"
+        android:textSize="14sp"
+        android:layout_below="@+id/card_med_title_right"
+        android:layout_toEndOf="@id/card_med_image_right"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@id/card_med_image_right"
+        android:background="@drawable/bg_top_border">
+        <Button
+            style="?android:buttonBarButtonStyle"
+            android:id="@+id/card_med_btn_right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:text="Learn More"/>
+    </LinearLayout>
+</RelativeLayout>

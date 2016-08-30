@@ -5,43 +5,101 @@
         android:visible="true">
         <item
             android:id="@+id/slide_home"
-            android:icon="@drawable/ic_menu_gallery"
+            android:icon="@drawable/ic_vector_home"
             android:title="@string/slide_menu_home"/>
-    </group>
-    <group
-        android:id="@+id/nav_menu_group_resources"
-        android:visible="true">
-        <item
-            android:id="@+id/slide_docs"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="@string/slide_menu_docs" />
-        <item
-            android:id="@+id/slide_maintenace"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/slide_menu_maintenance" />
-        <item
-            android:id="@+id/slide_specs"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/slide_menu_specs" />
         <item
             android:id="@+id/slide_guide"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/ic_vector_guide"
             android:title="@string/slide_menu_guide" />
         <item
             android:id="@+id/slide_locator"
-            android:icon="@drawable/ic_menu_share"
+            android:icon="@drawable/ic_vector_locator"
             android:title="@string/slide_menu_locator" />
     </group>
+    <item
+        android:title="My Tools">
+        <group
+            android:id="@+id/nav_menu_group_resources"
+            android:visible="true">
+            <item
+                android:id="@+id/slide_docs"
+                android:icon="@drawable/ic_vector_docs_dark"
+                android:title="@string/slide_menu_docs" />
+            <item
+                android:id="@+id/slide_maintenace"
+                android:icon="@drawable/ic_vector_maintenance"
+                android:title="@string/slide_menu_maintenance" />
+            <item
+                android:id="@+id/slide_specs"
+                android:icon="@drawable/ic_vector_specs"
+                android:title="@string/slide_menu_specs" />
+        </group>
+    </item>
+
+    <!-- Group that switches back and forth when arrow is clicked -->
     <group
         android:id="@+id/nav_menu_group_settings"
         android:visible="false">
         <item
             android:id="@+id/slide_settings"
-            android:icon="@drawable/ic_menu_send"
+            android:icon="@drawable/ic_vector_settings"
             android:title="@string/slide_menu_settings" />
         <item
             android:id="@+id/slide_contact"
-            android:icon="@drawable/common_full_open_on_phone"
+            android:icon="@drawable/ic_vector_contact"
             android:title="@string/slide_menu_contact"/>
     </group>
 </menu>
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<menu xmlns:android="http://schemas.android.com/apk/res/android">-->
+<!--<group-->
+    <!--android:id="@+id/nav_menu_group_home"-->
+    <!--android:visible="true">-->
+    <!--<item-->
+        <!--android:id="@+id/slide_home"-->
+        <!--android:icon="@drawable/ic_menu_gallery"-->
+        <!--android:title="@string/slide_menu_home"/>-->
+<!--</group>-->
+<!--<item-->
+    <!--android:title="">-->
+
+<!--</item>-->
+<!--<group-->
+    <!--android:id="@+id/nav_menu_group_resources"-->
+    <!--android:visible="true">-->
+    <!--<item-->
+        <!--android:id="@+id/slide_docs"-->
+        <!--android:icon="@drawable/ic_menu_camera"-->
+        <!--android:title="@string/slide_menu_docs" />-->
+    <!--<item-->
+        <!--android:id="@+id/slide_maintenace"-->
+        <!--android:icon="@drawable/ic_menu_gallery"-->
+        <!--android:title="@string/slide_menu_maintenance" />-->
+    <!--<item-->
+        <!--android:id="@+id/slide_specs"-->
+        <!--android:icon="@drawable/ic_menu_slideshow"-->
+        <!--android:title="@string/slide_menu_specs" />-->
+    <!--<item-->
+        <!--android:id="@+id/slide_guide"-->
+        <!--android:icon="@drawable/ic_menu_manage"-->
+        <!--android:title="@string/slide_menu_guide" />-->
+    <!--<item-->
+        <!--android:id="@+id/slide_locator"-->
+        <!--android:icon="@drawable/ic_menu_share"-->
+        <!--android:title="@string/slide_menu_locator" />-->
+<!--</group>-->
+<!--<group-->
+    <!--android:id="@+id/nav_menu_group_settings"-->
+    <!--android:visible="false">-->
+    <!--<item-->
+        <!--android:id="@+id/slide_settings"-->
+        <!--android:icon="@drawable/ic_menu_send"-->
+        <!--android:title="@string/slide_menu_settings" />-->
+    <!--<item-->
+        <!--android:id="@+id/slide_contact"-->
+        <!--android:icon="@drawable/common_full_open_on_phone"-->
+        <!--android:title="@string/slide_menu_contact"/>-->
+<!--</group>-->
+<!--</menu>-->
+

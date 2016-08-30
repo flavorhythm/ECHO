@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         app:elevation="0dp">
         <fragment
-            android:name="fragment.FragmentToolbar"
+            android:name="fragment.static_fragment.FragmentToolbar"
             android:id="@+id/ads_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
