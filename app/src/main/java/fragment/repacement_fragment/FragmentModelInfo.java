@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -41,7 +42,9 @@ import widget.ModelInfoView;
 /**
  * Created by zyuki on 7/15/2016.
  */
-public class FragmentModelInfo extends FragmentBase implements PropertyChangeListener {
+public class FragmentModelInfo extends FragmentBase
+        implements PropertyChangeListener, View.OnClickListener {
+
     private static FragmentModelInfo thisFragment;
     private static boolean hasModelChangeListener = false;
 
@@ -57,6 +60,8 @@ public class FragmentModelInfo extends FragmentBase implements PropertyChangeLis
     private ChipView modelType, modelName, modelSerial;
 
     private TextSwitcher modelInfoTitleSwitcher;
+
+    private Button manualBtn, maintenanceBtn, specsBtn;
 
     private ModelInfoView modelInfoView;
 
@@ -125,7 +130,9 @@ public class FragmentModelInfo extends FragmentBase implements PropertyChangeLis
         View fragView = inflater.inflate(layoutRes, container, false);
 
         modelInfoView = (ModelInfoView)fragView.findViewById(R.id.modelInfo_view);
-
+        manualBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_documentation);
+        maintenanceBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_maintenance);
+        specsBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_specs);
 
 //        noModelView = fragView.findViewById(R.id.no_model_view);
 //        cardRecycler = (RecyclerView)fragView.findViewById(R.id.modelInfo_recycler_cards);
@@ -159,6 +166,10 @@ public class FragmentModelInfo extends FragmentBase implements PropertyChangeLis
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
         Log.d("FragmentDocuments", "onViewCreated");
         super.onViewCreated(fragmentView, savedInstanceState);
+
+        manualBtn.setOnClickListener(thisFragment);
+        maintenanceBtn.setOnClickListener(thisFragment);
+        specsBtn.setOnClickListener(thisFragment);
     }
 
     @Override
@@ -179,7 +190,24 @@ public class FragmentModelInfo extends FragmentBase implements PropertyChangeLis
             }
         }
     }
-//
+
+    @Override
+    public void onClick(View v) {
+//        FragName selectedFrag = null;
+        int cardType = -1;
+
+        switch(v.getId()) {
+            case R.id.modelInfo_btn_documentation: cardType = Card.CARD_TYPE_DOC; break;
+            case R.id.modelInfo_btn_maintenance: cardType = Card.CARD_TYPE_MAINT; break;
+            case R.id.modelInfo_btn_specs: cardType = Card.CARD_TYPE_SPECS; break;
+        }
+
+        if(cardType != -1) {
+            modelInfoView.onMenuItemChanged(cardType, dataAccess.getCards(cardType));
+        }
+    }
+
+    //
 //    private void removeNoModelView() {
 //        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
 //            Log.d("FragmentBase", "updateFragContent: noModelView removed");
@@ -212,22 +240,25 @@ public class FragmentModelInfo extends FragmentBase implements PropertyChangeLis
 
     public void updateContentFragSwitch() {
         //recyclerViewGroup.startAnimation(modelImageAnim);
+
     }
 
     public void updateContentModelSwitch(String modelName) {
         //TODO: update content here (on different model selected)
         //TODO: maybe check FragName to see whether is correct fragname
 //        modelInfoTitleSwitcher.setText(modelName);
-
         modelInfoView.setModelName(modelName);
 
-        List<Card> cardList = dataAccess.getCards(cardTypeForFrag(getFragName()));
-
-        if(modelName != null) {
-            modelInfoView.updateRecycler(modelName, cardList);
-//            ((ModelInfoAdapter) cardRecycler.getAdapter()).updateCardData(modelName, cardList);
-            //TODO: update model cardImage here
-        }
+//        modelInfoView.setModelName(modelName);
+//
+//        List<Card> cardList = dataAccess.getCards(cardTypeForFrag(getFragName()));
+//
+//        if(modelName != null) {
+//            //TODO: closes drawer and updates images in ModelInfoView
+////            modelInfoView.updateRecycler(modelName, cardList);
+////            ((ModelInfoAdapter) cardRecycler.getAdapter()).updateCardData(modelName, cardList);
+//            //TODO: update model cardImage here
+//        }
 
 //        removeNoModelView();
     }

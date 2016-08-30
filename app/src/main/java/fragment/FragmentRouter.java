@@ -37,7 +37,7 @@ import static util.FragName.*;
  * IDEA: queue a fragment and execute change when needed
  * fragment must execute before overriding queue
  */
-public class FragmentRouter implements Animation.AnimationListener {
+public class FragmentRouter /*implements Animation.AnimationListener*/ {
     //TODO: new fragment,
     private static final int INIT_TRANS_CONFIG = 1000;
     private static final int SWAP_TRANS_CONFIG = 1001;
@@ -64,7 +64,7 @@ public class FragmentRouter implements Animation.AnimationListener {
     private static int fragContainer = R.id.main_frag_content;
     private static int currentAlpha = 0;
 
-    private boolean noModelViewRequired = true;
+//    private boolean noModelViewRequired = true;
 
     public static FragmentRouter newInstance(Activity activity) {
         if(!activity.equals(FragmentRouter.activity)) {
@@ -77,8 +77,8 @@ public class FragmentRouter implements Animation.AnimationListener {
             FragmentRouter.actionBarBg = (TransitionDrawable)activity.findViewById(R.id.main_appbar).getBackground();
             //FragmentRouter.noModelView = activity.findViewById(R.id.no_model_view);
 
-            FragmentRouter.noModelHideAnim = AnimationUtils.loadAnimation(activity, R.anim.no_model_fade_out);
-            FragmentRouter.noModelShowAnim = AnimationUtils.loadAnimation(activity, R.anim.no_model_fade_in);
+//            FragmentRouter.noModelHideAnim = AnimationUtils.loadAnimation(activity, R.anim.no_model_fade_out);
+//            FragmentRouter.noModelShowAnim = AnimationUtils.loadAnimation(activity, R.anim.no_model_fade_in);
 
             FragmentRouter.valueChange = ((DataAccessApplication)activity.getApplication()).getValueChangeSupport();
 
@@ -101,14 +101,14 @@ public class FragmentRouter implements Animation.AnimationListener {
         FragmentRouter.enqueuedFragName = enqueuedFragName;
     }
 
-    public static void hideNoModelView() {
-        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
-            Log.d("FragmentBase", "updateFragContent: noModelView removed");
-
-            noModelView.startAnimation(noModelHideAnim);
-            noModelHideAnim.setAnimationListener(FragmentRouter.thisInstance);
-        }
-    }
+//    public static void hideNoModelView() {
+//        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
+//            Log.d("FragmentBase", "updateFragContent: noModelView removed");
+//
+////            noModelView.startAnimation(noModelHideAnim);
+////            noModelHideAnim.setAnimationListener(FragmentRouter.thisInstance);
+//        }
+//    }
 
 //    public static void showNoModelView() {
 //        if((noModelView != null) && (noModelView.getVisibility() != View.VISIBLE)) {
@@ -120,19 +120,19 @@ public class FragmentRouter implements Animation.AnimationListener {
 //        }
 //    }
 
-    @Override
-    public void onAnimationStart(Animation animation) {}
-
-    @Override
-    public void onAnimationEnd(Animation animation) {
-        final boolean isVisible = noModelView.getVisibility() == View.VISIBLE;
-
-        noModelView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
-        noModelView.setClickable(!isVisible);
-    }
-
-    @Override
-    public void onAnimationRepeat(Animation animation) {}
+//    @Override
+//    public void onAnimationStart(Animation animation) {}
+//
+//    @Override
+//    public void onAnimationEnd(Animation animation) {
+//        final boolean isVisible = noModelView.getVisibility() == View.VISIBLE;
+//
+//        noModelView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+//        noModelView.setClickable(!isVisible);
+//    }
+//
+//    @Override
+//    public void onAnimationRepeat(Animation animation) {}
 
     public static void actionBarFadeScroll(int scrollY, int actionBarSize, float rangeMax) {
         final float rangeMin = rangeMax - (actionBarSize / 2);
@@ -369,10 +369,10 @@ public class FragmentRouter implements Animation.AnimationListener {
         else return getDisplayedFragName();
     }
 
-    private static String getBackStackTag(FragName fragName) {
-        if(getDisplayedFragName().equals(HOME)) return ROOT_FRAG;
-        else return fragName.toString();
-    }
+//    private static String getBackStackTag(FragName fragName) {
+//        if(getDisplayedFragName().equals(HOME)) return ROOT_FRAG;
+//        else return fragName.toString();
+//    }
 
     private static void toggleActionBarBg(FragName toDisplayFragName) {
         if(toDisplayFragName.equals(HOME)) actionBarBg.reverseTransition(ACTION_BAR_TRANS);

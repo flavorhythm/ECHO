@@ -1,21 +1,25 @@
 package widget;
 
+import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewGroupCompat;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
+import android.support.v4.view.animation.LinearOutSlowInInterpolator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextSwitcher;
@@ -37,19 +41,25 @@ import util.MetricCalcs;
  * Created by ZYuki on 6/30/2016.
  */
 public class ModelInfoView extends RelativeLayout implements Animation.AnimationListener {
-    private Animation hideAnimation, showAnimation;
+    private static final int LEFT = 100;
+    private static final int RIGHT = 200;
+
+    private Animation slideDownAnim, slideUpAnim;
     private Animation noModelHideAnim;
 
     private Animation modelImageAnim;
     private View noModelView;
-    private RelativeLayout recyclerViewGroup;
+    private RelativeLayout lowerImageGroup;
     private RecyclerView cardRecycler;
-    private ImageView upperImage, lowerImage;
-    private ChipView modelType, modelName, modelSerial;
+    private ImageSwitcher upperImageSwitcher, lowerImageSwitcher;
 
     private TextSwitcher modelInfoTitleSwitcher;
 
-    private ValueChangeSupport valueChange;
+    private ValueChangeSupport valueChange = null;
+
+    private List<Card> enqueuedCardList;
+
+    private int enqueuedCardType = -1;
 
 //    @Override
 //    protected void onLayout(boolean changed, int l, int t, int r, int b) {
@@ -83,7 +93,48 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
         noModelHideAnim = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
         noModelHideAnim.setAnimationListener(ModelInfoView.this);
 
-        valueChange = ((DataAccessApplication)getContext().getApplicationContext()).getValueChangeSupport();
+//        slideImageUpAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_up);
+//        slideImageDownAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_down);
+//
+//        slideImageUpAnim.setAnimationListener(new Animation.AnimationListener() {
+//            @Override
+//            public void onAnimationStart(Animation animation) {
+//
+//            }
+//
+//            @Override
+//            public void onAnimationEnd(Animation animation) {
+//                updateRecycler(valueChange.getEnqueuedModelName(), enqueuedCardList);
+//                lowerImageGroup.setTranslationY(MetricCalcs.dpToPixels(0));
+//                lowerImageGroup.startAnimation(slideImageDownAnim);
+//
+//                enqueuedCardList = null;
+//            }
+//
+//            @Override
+//            public void onAnimationRepeat(Animation animation) {
+//
+//            }
+//        });
+//
+//        slideImageDownAnim.setAnimationListener(new Animation.AnimationListener() {
+//            @Override
+//            public void onAnimationStart(Animation animation) {
+//
+//            }
+//
+//            @Override
+//            public void onAnimationEnd(Animation animation) {
+//                lowerImageGroup.setTranslationY(MetricCalcs.dpToPixels(240));
+//            }
+//
+//            @Override
+//            public void onAnimationRepeat(Animation animation) {
+//
+//            }
+//        });
+
+        if(valueChange == null) valueChange = ((DataAccessApplication)getContext().getApplicationContext()).getValueChangeSupport();
         //View.OnClickListener listener = ((MainActivity)getContext()).getCardListnener();
 
 //        hideAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
@@ -96,22 +147,25 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 //        Log.v("test","test");
         noModelView = findViewById(R.id.no_model_view);
         cardRecycler = (RecyclerView)findViewById(R.id.modelInfo_recycler_cards);
-        upperImage = (ImageView)findViewById(R.id.modelInfo_image_upper);
-        lowerImage = (ImageView)findViewById(R.id.modelInfo_image_lower);
+        upperImageSwitcher = (ImageSwitcher)findViewById(R.id.modelInfo_image_upper);
+        lowerImageSwitcher = (ImageSwitcher)findViewById(R.id.modelInfo_image_lower);
         modelInfoTitleSwitcher = (TextSwitcher)findViewById(R.id.modelInfo_text_titleText);
-        recyclerViewGroup = (RelativeLayout)findViewById(R.id.modelInfo_group_lower_image);
+        lowerImageGroup = (RelativeLayout) findViewById(R.id.modelInfo_group_lower_image);
 //
         setupTextSwitcher();
+        setupImageSwitcher();
 //
         cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         if(getContext() instanceof MainActivity)
             cardRecycler.setAdapter(new ModelInfoAdapter(((MainActivity)getContext()).getCardListnener()));
+
+        moveImageLeftAnim();
 //
-        Bitmap[] bitmapArray = splitImage();
-//
-        upperImage.setImageBitmap(bitmapArray[0]);
-        lowerImage.setImageBitmap(bitmapArray[1]);
+//        Bitmap[] bitmapArray = splitImageBitmap();
+////
+//        upperImageSwitcher.setImageBitmap(bitmapArray[0]);
+//        lowerImageSwitcher.setImageBitmap(bitmapArray[1]);
 
         if(!valueChange.getSelectedModel().equals(ValueChangeSupport.NO_SELECTION)) {
             noModelView.setVisibility(View.GONE);
@@ -119,16 +173,20 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 
             setModelName(valueChange.getSelectedModel());
         }
-//        cardRecycler.setVisibility(View.INVISIBLE);
-//
-        //TODO: use this to remove nomodelview
-//        noModelView.setVisibility(View.GONE);
+
+        upperImageSwitcher.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                moveImageLeftAnim();
+            }
+        });
+
 //
 //        LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 //        setLayoutParams(params);
 
-//        upperImage.getLayoutParams().height = MetricCalcs.getHeightForRatio(4,3);
-//        upperImage.requestLayout();
+//        upperImageSwitcher.getLayoutParams().height = MetricCalcs.getHeightForRatio(4,3);
+//        upperImageSwitcher.requestLayout();
 //
 //        findViewById(R.id.modelInfo_group_image).getLayoutParams().height = MetricCalcs.getHeightForRatio(4,3);
 //        findViewById(R.id.modelInfo_group_image).requestLayout();
@@ -203,14 +261,118 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 
     public void setModelName(String modelName) {
         modelInfoTitleSwitcher.setText(modelName);
+        changeModelImage();
         removeNoModelView();
     }
 
     //TODO: need to build this
     public void setImage(){}
 
+    public void onMenuItemChanged(int cardType, List<Card> cardList) {
+        if(enqueuedCardType == -1) {
+            enqueuedCardType = cardType;
+            enqueuedCardList = cardList;
+            slideImageDownAnim();
+        } else {
+            enqueuedCardType = cardType;
+            enqueuedCardList = cardList;
+            slideImageUpAnim(true);
+        }
+        //TODO: start lower image animation
+    }
+
+    private void slideImageDownAnim() {
+        cardRecycler
+                .animate()
+                .translationY(0)
+                .setInterpolator(new FastOutSlowInInterpolator())
+                .start();
+
+        lowerImageGroup
+                .animate()
+                .translationY(MetricCalcs.dpToPixels(240))
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        updateRecycler(valueChange.getEnqueuedModelName(), enqueuedCardList);
+                        enqueuedCardList = null; //TODO: necessary?
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        animation.removeAllListeners();
+                    }
+
+                    @Override public void onAnimationCancel(Animator animation) {}
+                    @Override public void onAnimationRepeat(Animator animation) {}
+                })
+                .setStartDelay(100)
+                .setInterpolator(new FastOutSlowInInterpolator())
+                .start();
+    }
+
+    private void slideImageUpAnim(boolean includeListener) {
+        if(includeListener) {
+            lowerImageGroup
+                    .animate()
+                    .translationY(MetricCalcs.dpToPixels(0))
+                    .setListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            slideImageDownAnim();
+                            animation.removeAllListeners();
+                        }
+
+                        @Override public void onAnimationStart(Animator animation) {}
+                        @Override public void onAnimationCancel(Animator animation) {}
+                        @Override public void onAnimationRepeat(Animator animation) {}
+                    })
+                    .setInterpolator(new LinearOutSlowInInterpolator())
+                    .start();
+        } else {
+            lowerImageGroup
+                    .animate()
+                    .translationY(MetricCalcs.dpToPixels(0))
+                    .setListener(null)
+                    .setInterpolator(new LinearOutSlowInInterpolator())
+                    .start();
+        }
+
+        cardRecycler
+                .animate()
+                .translationY(100)
+                .setInterpolator(new FastOutSlowInInterpolator())
+                .start();
+    }
+
+    private void moveImageLeftAnim() {
+        Drawable[] drawables = splitImageDrawable();
+
+        upperImageSwitcher.setImageDrawable(drawables[0]);
+        lowerImageSwitcher.setImageDrawable(drawables[1]);
+    }
+
+    private void moveImageRightAnim() {
+
+    }
+
+    private void changeModelImage() {
+        enqueuedCardType = -1;
+        slideImageUpAnim(false);
+    }
+
     public void updateRecycler(String modelName, List<Card> cardList) {
         ((ModelInfoAdapter)cardRecycler.getAdapter()).updateCardData(modelName, cardList);
+    }
+
+    private void swipeModel(int direction) {
+        //TODO: change models when button is clicked or image is swiped
+        //TODO: will close model image tray
+        //TODO: fires changeModelImage method
+        switch(direction) {
+            case LEFT: break;
+            case RIGHT: break;
+        }
     }
 
     private void setupTextSwitcher() {
@@ -236,11 +398,52 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 
         modelInfoTitleSwitcher.setInAnimation(in);
         modelInfoTitleSwitcher.setOutAnimation(out);
-
-//        modelInfoTitleSwitcher.setText("SRM-225");
     }
 
-    private Bitmap[] splitImage() {
+    private void setupImageSwitcher() {
+        final Bitmap[] bitmapArray = splitImageBitmap();
+
+//        BitmapDrawable drawable = new BitmapDrawable(getResources(), bitmapArray[0]);
+
+        upperImageSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
+            @Override
+            public View makeView() {
+                return new ImageView(getContext());
+            }
+        });
+
+        lowerImageSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
+            @Override
+            public View makeView() {
+                return new ImageView(getContext());
+            }
+        });
+
+        Animation in = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_in);
+        Animation out = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_out);
+
+        upperImageSwitcher.setInAnimation(in);
+        upperImageSwitcher.setOutAnimation(out);
+
+        lowerImageSwitcher.setInAnimation(in);
+        lowerImageSwitcher.setOutAnimation(out);
+
+//        upperImageSwitcher.setImageBitmap(bitmapArray[0]);
+//        lowerImageSwitcher.setImageBitmap(bitmapArray[1]);
+    }
+
+    private Drawable[] splitImageDrawable() {
+        Drawable[] drawableArray = new Drawable[2];
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.srm_225);
+        int splitYPos = bitmap.getHeight() / 2;
+
+        drawableArray[0] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos));
+        drawableArray[1] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos));
+
+        return drawableArray;
+    }
+
+    private Bitmap[] splitImageBitmap() {
         Bitmap[] bitmapArray = new Bitmap[2];
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.srm_225);
         int splitYPos = bitmap.getHeight() / 2;

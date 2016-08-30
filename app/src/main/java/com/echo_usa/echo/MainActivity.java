@@ -70,20 +70,8 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
     }
 
     private void zOrdering() {
-        //brings No Model View to the front
-//        findViewById(R.id.no_model_view).bringToFront();
-//        findViewById(R.id.main_appbar).invalidate();
-//        findViewById(R.id.main_frag_content).invalidate();
-
-        //brings actionbar to the front
         findViewById(R.id.main_appbar).bringToFront();
-        //findViewById(R.id.no_model_view).invalidate();
         findViewById(R.id.main_frag_content).invalidate();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
     }
 
     private void setupToolbarToggle(Toolbar toolbar) {
@@ -157,7 +145,6 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
     public boolean onCreateOptionsMenu(Menu rightDrawerToggle) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, rightDrawerToggle);
-//        setGarageBtnVisibility(false);
         FragmentToolbar.setGarageBtnVisibility(false);
         return true;
     }
