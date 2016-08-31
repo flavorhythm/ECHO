@@ -61,11 +61,14 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 
     private int enqueuedCardType = -1;
 
+    private int displayedCardType = -1;
+
+    private static Callback callback;
+
 //    @Override
 //    protected void onLayout(boolean changed, int l, int t, int r, int b) {
 //
 //    }
-
 
 
     public ModelInfoView(Context context) {
@@ -90,6 +93,16 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
     }
 
     private void init() {
+        //isInEditMode();
+
+        View.OnClickListener cardListener = null;
+
+        if(!isInEditMode()) {
+            callback = (Callback)getContext();
+            valueChange = callback.getValueChangeSupport();
+            cardListener = callback.getListener();
+        }
+
         noModelHideAnim = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
         noModelHideAnim.setAnimationListener(ModelInfoView.this);
 
@@ -134,7 +147,9 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 //            }
 //        });
 
-        if(valueChange == null) valueChange = ((DataAccessApplication)getContext().getApplicationContext()).getValueChangeSupport();
+//        if(valueChange == null && getContext().getApplicationContext() instanceof DataAccessApplication) {
+//            valueChange = ((DataAccessApplication)getContext().getApplicationContext()).getValueChangeSupport();
+//        }
         //View.OnClickListener listener = ((MainActivity)getContext()).getCardListnener();
 
 //        hideAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
@@ -157,8 +172,8 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 //
         cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        if(getContext() instanceof MainActivity)
-            cardRecycler.setAdapter(new ModelInfoAdapter(((MainActivity)getContext()).getCardListnener()));
+        if(cardListener != null && getContext() instanceof MainActivity)
+            cardRecycler.setAdapter(new ModelInfoAdapter(cardListener));
 
         moveImageLeftAnim();
 //
@@ -269,6 +284,10 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
     public void setImage(){}
 
     public void onMenuItemChanged(int cardType, List<Card> cardList) {
+        displayedCardType = cardType;
+
+
+
         if(enqueuedCardType == -1) {
             enqueuedCardType = cardType;
             enqueuedCardList = cardList;
@@ -282,20 +301,16 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
     }
 
     private void slideImageDownAnim() {
-        cardRecycler
-                .animate()
-                .translationY(0)
-                .setInterpolator(new FastOutSlowInInterpolator())
-                .start();
-
         lowerImageGroup
                 .animate()
-                .translationY(MetricCalcs.dpToPixels(240))
+                .translationY(MetricCalcs.dpToPixels(210))
                 .setListener(new Animator.AnimatorListener() {
                     @Override
                     public void onAnimationStart(Animator animation) {
                         updateRecycler(valueChange.getEnqueuedModelName(), enqueuedCardList);
                         enqueuedCardList = null; //TODO: necessary?
+
+                        doSwitcherAnim(true);
                     }
 
                     @Override
@@ -309,21 +324,30 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
                 .setStartDelay(100)
                 .setInterpolator(new FastOutSlowInInterpolator())
                 .start();
+
+        cardRecycler
+                .animate()
+                .translationY(0)
+                .setInterpolator(new FastOutSlowInInterpolator())
+                .start();
     }
 
-    private void slideImageUpAnim(boolean includeListener) {
-        if(includeListener) {
+    private void slideImageUpAnim(boolean includeSlideDown) {
+        if(includeSlideDown) {
             lowerImageGroup
                     .animate()
                     .translationY(MetricCalcs.dpToPixels(0))
                     .setListener(new Animator.AnimatorListener() {
+                        @Override public void onAnimationStart(Animator animation) {
+                            doSwitcherAnim(false);
+                        }
+
                         @Override
                         public void onAnimationEnd(Animator animation) {
                             slideImageDownAnim();
                             animation.removeAllListeners();
                         }
 
-                        @Override public void onAnimationStart(Animator animation) {}
                         @Override public void onAnimationCancel(Animator animation) {}
                         @Override public void onAnimationRepeat(Animator animation) {}
                     })
@@ -333,15 +357,43 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
             lowerImageGroup
                     .animate()
                     .translationY(MetricCalcs.dpToPixels(0))
-                    .setListener(null)
+                    .setListener(new Animator.AnimatorListener() {
+                        @Override public void onAnimationStart(Animator animation) {
+                            doSwitcherAnim(false);
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            animation.removeAllListeners();
+                        }
+
+                        @Override public void onAnimationCancel(Animator animation) {}
+                        @Override public void onAnimationRepeat(Animator animation) {}
+                    })
                     .setInterpolator(new LinearOutSlowInInterpolator())
                     .start();
         }
 
         cardRecycler
                 .animate()
-                .translationY(100)
+                .translationY(150)
+                .setStartDelay(50)
                 .setInterpolator(new FastOutSlowInInterpolator())
+                .start();
+    }
+
+    private void doSwitcherAnim(boolean offset) {
+        int offsetVal = 0;
+        if(offset) offsetVal = 4;
+
+        upperImageSwitcher.getCurrentView()
+                .animate()
+                .translationY(MetricCalcs.dpToPixels(offsetVal))
+                .start();
+
+        lowerImageSwitcher.getCurrentView()
+                .animate()
+                .translationY(MetricCalcs.dpToPixels(-1 * offsetVal))
                 .start();
     }
 
@@ -452,5 +504,10 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
         bitmapArray[1] = Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos);
 
         return bitmapArray;
+    }
+
+    public interface Callback {
+        ValueChangeSupport getValueChangeSupport();
+        View.OnClickListener getListener();
     }
 }

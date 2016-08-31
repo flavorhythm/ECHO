@@ -6,42 +6,47 @@
     android:viewportHeight="48">
     <group>
         <path android:fillColor="#74ffffff"
-            android:pathData="M36,0
-                              v11
+            android:pathData="M40,0
+                              v7
                               a1,1 0 0,0 1,1
-                              h11
+                              h7
                               z"/>
         <path android:fillColor="#c5ffffff"
-            android:pathData="M48,0
-                              v12
-                              l-12,-12
+            android:pathData="M50,0
+                              v10
+                              l-10,-10
+                              h10
                               z"/>
         <path android:fillColor="#12000000"
-            android:pathData="M38,12
-                              h11
-                              v12
-                              l-12,-12
+            android:pathData="M41,8
+                              h7
+                              v7
+                              l-7,-7
                               z"/>
-        <path android:fillColor="@color/bg_garage"
-            android:pathData="M8,24
+        <path android:fillColor="#F0F0F0"
+            android:pathData="M8,20
                               h32
                               v3
                               h-32
+                              v-3
                               z
-                              M8,30
+                              m0,6
                               h32
                               v3
                               h-32
+                              v-3
                               z
-                              M8,36
+                              m0,6
                               h32
                               v3
                               h-32
+                              v-3
                               z
-                              M8,42
+                              m0,6
                               h26
                               v3
                               h-26
+                              v-3
                               z"/>
         <!--<path android:fillColor="@color/bg_garage"-->
             <!--android:pathData="M10,9.5-->

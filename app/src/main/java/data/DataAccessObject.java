@@ -1,14 +1,11 @@
 package data;
 
 import android.content.Context;
-import android.widget.ArrayAdapter;
 
 import com.echo_usa.echo.R;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import adapter.GarageAdapter;
 
 /**
  * Created by zyuki on 6/1/2016.
@@ -121,7 +118,7 @@ public class DataAccessObject {
 
             for(int i = 0; i < titleList.length; i++) {
                 docsCardList.add(
-                        new Card(Card.CARD_TYPE_DOC, Card.CARD_SIZE_SMALL, R.drawable.ic_vector_docs_light, titleList[i])
+                        new Card(Card.CARD_TYPE_DOC, Card.CARD_SIZE_SMALL, R.drawable.ic_vector_small_card_manuals, titleList[i])
                 );
             }
         }
@@ -157,7 +154,7 @@ public class DataAccessObject {
             int[] drawableList = new int[] {
                     R.drawable.ic_vector_dimensions,
                     R.drawable.ic_vector_engine,
-                    R.drawable.ic_vector_peripherals,
+                    R.drawable.ic_vector_small_card_peripherals,
                     R.drawable.ic_vector_drive_system
             };
 
@@ -183,8 +180,8 @@ public class DataAccessObject {
 
             int[] drawableList = new int[] {
                     R.drawable.ic_vector_youcan_kit,
-                    R.drawable.ic_vector_service_parts,
-                    R.drawable.ic_vector_service_parts
+                    R.drawable.ic_vector_small_card_service_parts,
+                    R.drawable.ic_vector_small_card_service_parts
             };
 
             for(int i = 0; i < titleList.length; i++) {

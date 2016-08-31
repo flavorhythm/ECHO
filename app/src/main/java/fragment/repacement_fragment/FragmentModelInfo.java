@@ -43,7 +43,7 @@ import widget.ModelInfoView;
  * Created by zyuki on 7/15/2016.
  */
 public class FragmentModelInfo extends FragmentBase
-        implements PropertyChangeListener, View.OnClickListener {
+        implements PropertyChangeListener, View.OnClickListener, ModelInfoView.Callback {
 
     private static FragmentModelInfo thisFragment;
     private static boolean hasModelChangeListener = false;
@@ -271,7 +271,13 @@ public class FragmentModelInfo extends FragmentBase
         return fragName;
     }
 
-//    private void setupTextSwitcher() {
+    @Override
+    public ValueChangeSupport getValueChangeSupport() {return valueChange;}
+
+    @Override
+    public View.OnClickListener getListener() {return callback.getCardListnener();}
+
+    //    private void setupTextSwitcher() {
 //        modelInfoTitleSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
 //            @Override
 //            public View makeView() {
