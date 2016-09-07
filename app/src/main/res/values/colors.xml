@@ -12,6 +12,7 @@
     <color name="item_pressed">#263238</color>
     <color name="bg_garage">#F0F0F0</color>
     <color name="echo_orange_transparent">#00ffffff</color>
+    <color name="no_model_text">#616161</color>
 
     <color name="bg_model_info_a">#7b1fa2</color>
     <color name="bg_model_info_b">#c2185b</color>

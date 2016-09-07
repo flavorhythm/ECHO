@@ -91,9 +91,9 @@
         <!--android:layout_marginTop="?android:attr/actionBarSize"-->
         <!--android:layout_alignParentTop="true"/>-->
 
-    <include
-        android:id="@+id/no_model_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        layout="@layout/no_model_selection" />
+    <!--<include-->
+        <!--android:id="@+id/no_model_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--layout="@layout/no_model_selection" />-->
 </RelativeLayout>

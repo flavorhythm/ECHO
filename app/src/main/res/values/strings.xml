@@ -23,4 +23,6 @@
     <string name="service_email">echohelp@echo-usa.com</string>
     <string name="label_app_email">App Feedback</string>
     <string name="V58_URL">http://www.echocordless.com/</string>
+    <string name="no_unit_selected">No unit selected</string>
+    <string name="pick_unit">Pick a unit from My Garage</string>
 </resources>
