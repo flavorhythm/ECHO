@@ -55,7 +55,7 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 
     private TextSwitcher modelInfoTitleSwitcher;
 
-    private ValueChangeSupport valueChange = null;
+//    private ValueChangeSupport valueChange = null;
 
     private List<Card> enqueuedCardList;
 
@@ -71,40 +71,30 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 //    }
 
 
-    public ModelInfoView(Context context) {
-        super(context);
-        init();
-    }
-
-    public ModelInfoView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init();
-    }
-
-    public ModelInfoView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init();
-    }
+    public ModelInfoView(Context context) {this(context, null);}
+    public ModelInfoView(Context context, AttributeSet attrs) {this(context, attrs, 0);}
+    public ModelInfoView(Context context, AttributeSet attrs, int defStyleAttr) {this(context, attrs, defStyleAttr, 0);}
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public ModelInfoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+
+
+
         init();
     }
 
     private void init() {
-        //isInEditMode();
+//        View.OnClickListener cardListener = null;
+//
+//        if(!isInEditMode()) {
+//            callback = (Callback)getContext();
+//            valueChange = callback.getValueChangeSupport();
+//            cardListener = callback.getListener();
+//        }
 
-        View.OnClickListener cardListener = null;
-
-        if(!isInEditMode()) {
-            callback = (Callback)getContext();
-            valueChange = callback.getValueChangeSupport();
-            cardListener = callback.getListener();
-        }
-
-        noModelHideAnim = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
-        noModelHideAnim.setAnimationListener(ModelInfoView.this);
+//        noModelHideAnim = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
+//        noModelHideAnim.setAnimationListener(ModelInfoView.this);
 
 //        slideImageUpAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_up);
 //        slideImageDownAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_down);
@@ -160,7 +150,7 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 
         inflater.inflate(R.layout.view_model_info, this, true);
 //        Log.v("test","test");
-        noModelView = findViewById(R.id.no_model_view);
+//        noModelView = findViewById(R.id.no_model_view);
         cardRecycler = (RecyclerView)findViewById(R.id.modelInfo_recycler_cards);
         upperImageSwitcher = (ImageSwitcher)findViewById(R.id.modelInfo_image_upper);
         lowerImageSwitcher = (ImageSwitcher)findViewById(R.id.modelInfo_image_lower);
@@ -172,8 +162,8 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 //
         cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        if(cardListener != null && getContext() instanceof MainActivity)
-            cardRecycler.setAdapter(new ModelInfoAdapter(cardListener));
+//        if(cardListener != null && getContext() instanceof MainActivity)
+//            cardRecycler.setAdapter(new ModelInfoAdapter(cardListener));
 
         moveImageLeftAnim();
 //
@@ -182,12 +172,12 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 //        upperImageSwitcher.setImageBitmap(bitmapArray[0]);
 //        lowerImageSwitcher.setImageBitmap(bitmapArray[1]);
 
-        if(!valueChange.getSelectedModel().equals(ValueChangeSupport.NO_SELECTION)) {
-            noModelView.setVisibility(View.GONE);
-            noModelView.setClickable(false);
-
-            setModelName(valueChange.getSelectedModel());
-        }
+//        if(!valueChange.getSelectedModel().equals(ValueChangeSupport.NO_SELECTION)) {
+//            noModelView.setVisibility(View.GONE);
+//            noModelView.setClickable(false);
+//
+//            setModelName(valueChange.getSelectedModel());
+//        }
 
         upperImageSwitcher.setOnClickListener(new OnClickListener() {
             @Override
@@ -238,11 +228,11 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
     }
 
     private void removeNoModelView() {
-        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
-            Log.d("FragmentBase", "updateFragContent: noModelView removed");
-
-            noModelView.startAnimation(noModelHideAnim);
-        }
+//        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
+//            Log.d("FragmentBase", "updateFragContent: noModelView removed");
+//
+////            noModelView.startAnimation(noModelHideAnim);
+//        }
     }
 
     @Override
@@ -252,8 +242,8 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
 
     @Override
     public void onAnimationEnd(Animation animation) {
-        noModelView.setVisibility(View.GONE);
-        noModelView.setClickable(false);
+//        noModelView.setVisibility(View.GONE);
+//        noModelView.setClickable(false);
     }
 
     @Override
@@ -307,7 +297,7 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
                 .setListener(new Animator.AnimatorListener() {
                     @Override
                     public void onAnimationStart(Animator animation) {
-                        updateRecycler(valueChange.getEnqueuedModelName(), enqueuedCardList);
+//                        updateRecycler(valueChange.getEnqueuedModelName(), enqueuedCardList);
                         enqueuedCardList = null; //TODO: necessary?
 
                         doSwitcherAnim(true);

@@ -9,6 +9,10 @@
         android:id="@+id/modelInfo_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+    <widget.EmptyModelView
+        android:id="@+id/modelInfo_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,6 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="10dp"
             android:src="@drawable/bg_model_info_upper_fade"/>
+
         <RelativeLayout
             android:id="@+id/modelInfo_group_btnGroup"
             android:layout_width="match_parent"

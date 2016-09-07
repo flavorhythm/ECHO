@@ -37,6 +37,7 @@ import fragment.FragmentRouter;
 import util.FragName;
 import util.MetricCalcs;
 import widget.ChipView;
+import widget.EmptyModelView;
 import widget.ModelInfoView;
 
 /**
@@ -62,6 +63,7 @@ public class FragmentModelInfo extends FragmentBase
     private TextSwitcher modelInfoTitleSwitcher;
 
     private Button manualBtn, maintenanceBtn, specsBtn;
+    private EmptyModelView emptyModelView;
 
     private ModelInfoView modelInfoView;
 
@@ -130,6 +132,7 @@ public class FragmentModelInfo extends FragmentBase
         View fragView = inflater.inflate(layoutRes, container, false);
 
         modelInfoView = (ModelInfoView)fragView.findViewById(R.id.modelInfo_view);
+        emptyModelView = (EmptyModelView)fragView.findViewById(R.id.modelInfo_empty);
         manualBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_documentation);
         maintenanceBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_maintenance);
         specsBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_specs);
@@ -180,6 +183,9 @@ public class FragmentModelInfo extends FragmentBase
             if(propName.equals(ValueChangeSupport.PROPERTY_MODEL)) {
                 Log.d("FragmentBase", "propertyChange: current fragment updated");
                 thisFragment.updateContentModelSwitch(event.getNewValue().toString());
+
+                if(thisFragment.emptyModelView.isVisible())
+                    thisFragment.emptyModelView.startAnimation(EmptyModelView.HIDE_ANIM);
 //                if(noModelViewRequired) {
 //                    thisFragment.removeNoModelView();
 //                    noModelViewRequired = false;

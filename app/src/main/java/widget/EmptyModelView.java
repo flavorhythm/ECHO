@@ -1,5 +1,6 @@
 package widget;
 
+import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -7,15 +8,14 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewPropertyAnimator;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 
 import com.echo_usa.echo.R;
 
@@ -29,6 +29,8 @@ public class EmptyModelView extends View {
     public static final int HIDE_ANIM = 1;
 
     private static final int TEXT_SIZE = 18;
+    private static final float VISIBLE = 1f;
+    private static final float GONE = 0f;
 
     private Drawable echoLogo;
     private CharSequence upperText, lowerText;
@@ -36,7 +38,8 @@ public class EmptyModelView extends View {
     private Point upperTextOrigin, lowerTextOrigin;
     private TextPaint upperTextPaint, lowerTextPaint;
 
-    private Animation showAnim, hideAnim;
+    private ValueAnimator animator;
+    private float alphaVal = VISIBLE;
 
     public EmptyModelView(Context context) {this(context, null);}
     public EmptyModelView(Context context, AttributeSet attrs) {this(context, attrs, 0);}
@@ -49,6 +52,8 @@ public class EmptyModelView extends View {
         super(context, attrs, defStyleAttr, defStyleRes);
 
         //TODO: create Show Text parameter for xml
+
+        setSaveEnabled(true);
 
         echoLogo = ContextCompat.getDrawable(getContext(), R.drawable.echo_logo);
         upperText = getResources().getString(R.string.no_unit_selected);
@@ -68,26 +73,25 @@ public class EmptyModelView extends View {
 
         setBackground(ContextCompat.getDrawable(getContext(), R.drawable.no_model_bg));
 
-        showAnim = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_in);
-        hideAnim = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
-
-//        showAnim.setInterpolator(new Lin);
+        animator = ValueAnimator.ofFloat(VISIBLE, GONE);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                alphaVal = (float)animation.getAnimatedValue();
+                invalidate();
+            }
+        });
 
         updateContentBounds();
     }
 
+    public boolean isVisible() {return alphaVal == VISIBLE;}
+
     public void startAnimation(int animType) {
         switch(animType) {
-            case SHOW_ANIM: startAnimation(showAnim); break;
-            case HIDE_ANIM: startAnimation(hideAnim); break;
+            case SHOW_ANIM: animator.reverse(); break;
+            case HIDE_ANIM: animator.start(); break;
         }
-    }
-
-    @Override
-    protected void onAnimationEnd() {
-        super.onAnimationEnd();
-        if(getVisibility() == VISIBLE) setVisibility(View.GONE);
-        else setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -102,6 +106,10 @@ public class EmptyModelView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        setAlpha(alphaVal);
+
+        if(alphaVal == GONE) return;
+
         if(upperTextLayout != null) {
             canvas.save();
             canvas.translate(upperTextOrigin.x, upperTextOrigin.y);
@@ -131,8 +139,6 @@ public class EmptyModelView extends View {
     private void updateContentBounds() {
         if(upperText == null) upperText = "";
         if(lowerText == null) lowerText = "";
-//        float upperTextWidth = upperTextPaint.measureText(upperText, 0, upperText.length());
-//        float lowerTextWidth = lowerTextPaint.measureText(lowerText, 0, lowerText.length());
 
         float upperTextWidth = echoLogo.getIntrinsicWidth();
         float lowerTextWidth = echoLogo.getIntrinsicWidth();
@@ -184,5 +190,53 @@ public class EmptyModelView extends View {
         else lowerTextHeight = lowerTextLayout.getHeight();
 
         return upperTextHeight + echoLogoHeight + lowerTextHeight;
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        SavedState savedState = new SavedState(superState);
+        savedState.savedAlpha = alphaVal;
+
+        return savedState;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        SavedState savedState = (SavedState) state;
+        super.onRestoreInstanceState(savedState.getSuperState());
+        alphaVal = savedState.savedAlpha;
+    }
+
+    private static class SavedState extends BaseSavedState {
+        float savedAlpha;
+
+        public SavedState(Parcel source) {
+            super(source);
+            savedAlpha = source.readFloat();
+        }
+
+        public SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeFloat(savedAlpha);
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Parcelable.Creator<SavedState>() {
+            @Override
+            public SavedState createFromParcel(Parcel source) {
+                return new SavedState(source);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
     }
 }
