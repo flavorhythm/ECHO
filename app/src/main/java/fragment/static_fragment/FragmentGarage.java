@@ -123,12 +123,15 @@ public class FragmentGarage extends FragmentModelInfo implements ObservableScrol
             public void onItemClick(AdapterView<?> parent, View view, int originalPos, long id) {
                 int adjustedPos = originalPos - 1;
 
-                Model thisModel = (Model)parent.getAdapter().getItem(adjustedPos);
-                String modelName = thisModel.getModelName();
-                Log.d("FragmentGarage", "onItemClick: " + modelName + " selected");
-                getValueChange().enqueueModelNameChange(modelName);
+                if(parent.getAdapter().getItem(adjustedPos) instanceof Model) {
+                    Model thisModel = (Model)parent.getAdapter().getItem(adjustedPos);
+
+                    String modelName = thisModel.getModelName();
+                    Log.d("FragmentGarage", "onItemClick: " + modelName + " selected");
+                    getValueChange().enqueueModelChange(thisModel);
 //                callback.setModelName(modelName);
-                callback.closeDrawer(GravityCompat.END);
+                    callback.closeDrawer(GravityCompat.END);
+                }
             }
         });
     }

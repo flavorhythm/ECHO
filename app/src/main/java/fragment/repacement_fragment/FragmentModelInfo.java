@@ -1,10 +1,9 @@
 package fragment.repacement_fragment;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,9 +13,6 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
@@ -27,16 +23,12 @@ import com.echo_usa.echo.ValueChangeSupport;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
 
 import adapter.ModelInfoAdapter;
 import data.Card;
-import data.DataAccessObject;
+import data.Model;
 import fragment.FragmentBase;
-import fragment.FragmentRouter;
-import util.FragName;
 import util.MetricCalcs;
-import widget.ChipView;
 import widget.EmptyModelView;
 import widget.ModelInfoView;
 
@@ -50,15 +42,11 @@ public class FragmentModelInfo extends FragmentBase
     private static boolean hasModelChangeListener = false;
 
     private static ValueChangeSupport valueChange;
-    private Animation noModelHideAnim;
+    private Animation viewUpAnim, viewDownAnim;
 
-    private Animation modelImageAnim;
-    private View noModelView;
-    private RelativeLayout recyclerViewGroup;
+    private CardTypeCheck cardTypeCheck;
+
     private RecyclerView cardRecycler;
-    private ImageView upperImage, lowerImage;
-//    private TextView modelInfoTitleSwitcher;
-    private ChipView modelType, modelName, modelSerial;
 
     private TextSwitcher modelInfoTitleSwitcher;
 
@@ -66,19 +54,6 @@ public class FragmentModelInfo extends FragmentBase
     private EmptyModelView emptyModelView;
 
     private ModelInfoView modelInfoView;
-
-    //private ModelInfoAdapter adapter;
-
-//    private static int listenerCounter = 0;
-
-//    public void updateFragContent(String modelName) {
-//        if(FragmentRouter.isThisFragDisplayed(FragName.DOCS)) {
-//            updateCardData(modelName);
-//
-//
-//            if(FragmentRouter.isInstantiated()) FragmentRouter.hideNoModelView();
-//        }
-//    }
 
     public static FragmentModelInfo newInstance() {
         if(thisFragment == null) thisFragment = new FragmentModelInfo();
@@ -93,29 +68,14 @@ public class FragmentModelInfo extends FragmentBase
         super.onCreate(savedInstanceState);
 
         valueChange = ((DataAccessApplication)getActivity().getApplication()).getValueChangeSupport();
+        cardTypeCheck = new CardTypeCheck();
 
-//        final Animation modelInfoAnimOpen = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_up);
-//
-//        valueChange = ((DataAccessApplication)getActivity().getApplication()).getValueChangeSupport();
-//        modelImageAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_down);
-//        modelImageAnim.setAnimationListener(new Animation.AnimationListener() {
-//            @Override
-//            public void onAnimationStart(Animation animation) {
-//
-//            }
-//
-//            @Override
-//            public void onAnimationEnd(Animation animation) {
-//                recyclerViewGroup.startAnimation(modelInfoAnimOpen);
-//                updateContentModelSwitch(valueChange.getSelectedModel());
-//            }
-//
-//            @Override
-//            public void onAnimationRepeat(Animation animation) {
-//
-//            }
-//        });
-////
+        viewUpAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_up);
+        viewUpAnim.setInterpolator(new FastOutSlowInInterpolator());
+
+        viewDownAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_down);
+        viewDownAnim.setInterpolator(new FastOutSlowInInterpolator());
+
         if(!hasModelChangeListener) {
             valueChange.addPropertyChangeListener(this);
             hasModelChangeListener = true;
@@ -133,36 +93,63 @@ public class FragmentModelInfo extends FragmentBase
 
         modelInfoView = (ModelInfoView)fragView.findViewById(R.id.modelInfo_view);
         emptyModelView = (EmptyModelView)fragView.findViewById(R.id.modelInfo_empty);
+
         manualBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_documentation);
         maintenanceBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_maintenance);
         specsBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_specs);
 
-//        noModelView = fragView.findViewById(R.id.no_model_view);
-//        cardRecycler = (RecyclerView)fragView.findViewById(R.id.modelInfo_recycler_cards);
-//        upperImage = (ImageView)fragView.findViewById(R.id.modelInfo_image_upper);
-//        lowerImage = (ImageView)fragView.findViewById(R.id.modelInfo_image_lower);
-//        modelInfoTitleSwitcher = (TextSwitcher)fragView.findViewById(R.id.modelInfo_text_titleText);
-//        recyclerViewGroup = (RelativeLayout)fragView.findViewById(R.id.modelInfo_group_lower_image);
-//
-//        setupTextSwitcher();
-//
-//        cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-//
-//        cardRecycler.setAdapter(new ModelInfoAdapter(callback.getCardListnener()));
-//
-//        Bitmap[] bitmapArray = splitImage();
-//
-//        upperImage.setImageBitmap(bitmapArray[0]);
-//        lowerImage.setImageBitmap(bitmapArray[1]);
-        //cardRecycler.setVisibility(View.INVISIBLE);
+        cardRecycler = (RecyclerView)fragView.findViewById(R.id.modelInfo_recycler_cards);
+        modelInfoTitleSwitcher = (TextSwitcher)fragView.findViewById(R.id.modelInfo_text_titleText);
 
-//        upperImage.getLayoutParams().height = MetricCalcs.getHeightForRatio(4,3);
-//        upperImage.requestLayout();
+        setupTextSwitcher();
 
-//        fragView.findViewById(R.id.modelInfo_group_image).getLayoutParams().height = MetricCalcs.getHeightForRatio(4,3);
-//        fragView.findViewById(R.id.modelInfo_group_image).requestLayout();
+        cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+
+        cardRecycler.setAdapter(new ModelInfoAdapter(callback.getCardListnener()));
+        cardRecycler.getAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                thisFragment.modelInfoView.toggleDrawer(false);
+                thisFragment.cardTypeCheck.setDisplayedCardType();
+            }
+        });
+
+        modelInfoView.setCallback(thisFragment);
 
         return fragView;
+    }
+
+    @Override
+    public boolean updateRecycler() {
+        if(thisFragment.cardTypeCheck.isUpdateRequired()) {
+            ((ModelInfoAdapter)thisFragment.cardRecycler.getAdapter()).updateCardData(
+                    valueChange.getEnqueuedModel().getModelName(), dataAccess.getCards(cardTypeCheck.getEnqueued())
+            );
+        } else restoreListeners();
+
+        thisFragment.cardTypeCheck.dropSkipFlag();
+        return cardTypeCheck.isUpdateRequired();
+    }
+
+    @Override
+    public void animateRecyclerUp() {thisFragment.cardRecycler.startAnimation(viewUpAnim);}
+
+    @Override
+    public void animateRecyclerDown() {thisFragment.cardRecycler.startAnimation(viewDownAnim);}
+
+    @Override
+    public void restoreListeners() {
+        manualBtn.setOnClickListener(thisFragment);
+        maintenanceBtn.setOnClickListener(thisFragment);
+        specsBtn.setOnClickListener(thisFragment);
+    }
+
+    @Override
+    public void nullifyListeners() {
+        manualBtn.setOnClickListener(null);
+        maintenanceBtn.setOnClickListener(null);
+        specsBtn.setOnClickListener(null);
     }
 
     @Override
@@ -170,36 +157,30 @@ public class FragmentModelInfo extends FragmentBase
         Log.d("FragmentDocuments", "onViewCreated");
         super.onViewCreated(fragmentView, savedInstanceState);
 
-        manualBtn.setOnClickListener(thisFragment);
-        maintenanceBtn.setOnClickListener(thisFragment);
-        specsBtn.setOnClickListener(thisFragment);
+        restoreListeners();
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
         Log.d("FragmentBase", "propertyChange: " + event.getPropertyName());
+
         String propName = event.getPropertyName();
         if(propName != null) {
             if(propName.equals(ValueChangeSupport.PROPERTY_MODEL)) {
-                Log.d("FragmentBase", "propertyChange: current fragment updated");
-                thisFragment.updateContentModelSwitch(event.getNewValue().toString());
+                Model thisModel = (Model)event.getNewValue();
+                thisFragment.cardTypeCheck.raiseSkipFlag();
+
+                thisFragment.modelInfoTitleSwitcher.setText(thisModel.getModelName());
+                thisFragment.modelInfoView.updateModelImage(thisModel.getImgResource());
 
                 if(thisFragment.emptyModelView.isVisible())
                     thisFragment.emptyModelView.startAnimation(EmptyModelView.HIDE_ANIM);
-//                if(noModelViewRequired) {
-//                    thisFragment.removeNoModelView();
-//                    noModelViewRequired = false;
-//                }
-
-                //TODO: only make viewable after data load. to be done after data in ECHO servers
-                //if(FragmentRouter.isInstantiated()) FragmentRouter.hideNoModelView();
             }
         }
     }
 
     @Override
     public void onClick(View v) {
-//        FragName selectedFrag = null;
         int cardType = -1;
 
         switch(v.getId()) {
@@ -208,113 +189,59 @@ public class FragmentModelInfo extends FragmentBase
             case R.id.modelInfo_btn_specs: cardType = Card.CARD_TYPE_SPECS; break;
         }
 
-        if(cardType != -1) {
-            modelInfoView.onMenuItemChanged(cardType, dataAccess.getCards(cardType));
+        nullifyListeners();
+        thisFragment.cardTypeCheck.setEnqueued(cardType);
+        thisFragment.modelInfoView.toggleDrawer(cardTypeCheck.isUpdateRequired());
+    }
+
+    private void setupTextSwitcher() {
+        modelInfoTitleSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
+            @Override
+            public View makeView() {
+                TextView modelInfoTitle = new TextView(getContext());
+                modelInfoTitle.setTextSize(18);
+
+                int padding = MetricCalcs.dpToPixels(10);
+                modelInfoTitle.setPadding(padding, padding, padding, padding);
+
+                modelInfoTitle.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                modelInfoTitle.setTextColor(ContextCompat.getColor(getContext(),R.color.colorAccent));
+                modelInfoTitle.setAllCaps(true);
+
+                return modelInfoTitle;
+            }
+        });
+
+        Animation in = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_in);
+        Animation out = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_out);
+
+        modelInfoTitleSwitcher.setInAnimation(in);
+        modelInfoTitleSwitcher.setOutAnimation(out);
+    }
+
+    private class CardTypeCheck {
+        static final int EMPTY = -1;
+        int enqueuedCardType = EMPTY;
+        int displayedCardType = EMPTY;
+
+        boolean skipFlag = false;
+
+        void setEnqueued(int cardType) {this.enqueuedCardType = cardType;}
+        int getEnqueued() {return enqueuedCardType;}
+
+        void raiseSkipFlag() {skipFlag = true;}
+        void dropSkipFlag() {skipFlag = false;}
+
+        boolean isUpdateRequired() {
+            boolean isDisplayedFilled = displayedCardType == EMPTY;
+            boolean isEnqueuedDisplayed = displayedCardType == enqueuedCardType;
+
+            return !skipFlag && (isDisplayedFilled || !isEnqueuedDisplayed);
         }
-    }
 
-    //
-//    private void removeNoModelView() {
-//        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
-//            Log.d("FragmentBase", "updateFragContent: noModelView removed");
-//
-//            noModelView.startAnimation(noModelHideAnim);
-//        }
-//    }
-
-//    @Override
-//    public void onAnimationStart(Animation animation) {}
-//
-//    @Override
-//    public void onAnimationEnd(Animation animation) {
-//
-//    }
-//
-//    @Override
-//    public void onAnimationRepeat(Animation animation) {}
-
-//    private Bitmap[] splitImage() {
-//        Bitmap[] bitmapArray = new Bitmap[2];
-//        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.srm_225);
-//        int splitYPos = bitmap.getHeight() / 2;
-//
-//        bitmapArray[0] = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos);
-//        bitmapArray[1] = Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos);
-//
-//        return bitmapArray;
-//    }
-
-    public void updateContentFragSwitch() {
-        //recyclerViewGroup.startAnimation(modelImageAnim);
-
-    }
-
-    public void updateContentModelSwitch(String modelName) {
-        //TODO: update content here (on different model selected)
-        //TODO: maybe check FragName to see whether is correct fragname
-//        modelInfoTitleSwitcher.setText(modelName);
-        modelInfoView.setModelName(modelName);
-
-//        modelInfoView.setModelName(modelName);
-//
-//        List<Card> cardList = dataAccess.getCards(cardTypeForFrag(getFragName()));
-//
-//        if(modelName != null) {
-//            //TODO: closes drawer and updates images in ModelInfoView
-////            modelInfoView.updateRecycler(modelName, cardList);
-////            ((ModelInfoAdapter) cardRecycler.getAdapter()).updateCardData(modelName, cardList);
-//            //TODO: update model cardImage here
-//        }
-
-//        removeNoModelView();
-    }
-
-    private FragName getFragName() {
-        FragName fragName = FragmentRouter.getEnqueuedFragName();
-        if(fragName == null || fragName.equals(FragName.BLANK))
-            fragName = FragmentRouter.getDisplayedFragName();
-
-        return fragName;
-    }
-
-    @Override
-    public ValueChangeSupport getValueChangeSupport() {return valueChange;}
-
-    @Override
-    public View.OnClickListener getListener() {return callback.getCardListnener();}
-
-    //    private void setupTextSwitcher() {
-//        modelInfoTitleSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
-//            @Override
-//            public View makeView() {
-//                TextView modelInfoTitle = new TextView(getContext());
-//                modelInfoTitle.setTextSize(14);
-//
-//                int padding = MetricCalcs.dpToPixels(10);
-//                modelInfoTitle.setPadding(padding, padding, padding, padding);
-//
-//                modelInfoTitle.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-//                modelInfoTitle.setTextColor(ContextCompat.getColor(getContext(),R.color.white));
-//                modelInfoTitle.setAllCaps(true);
-//
-//                return modelInfoTitle;
-//            }
-//        });
-//
-//        Animation in = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_in);
-//        Animation out = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_out);
-//
-//        modelInfoTitleSwitcher.setInAnimation(in);
-//        modelInfoTitleSwitcher.setOutAnimation(out);
-//    }
-
-    private int cardTypeForFrag(FragName displayedFragName) {
-        switch(displayedFragName) {
-            case DOCS: return Card.CARD_TYPE_DOC;
-            case SPECS: return Card.CARD_TYPE_SPECS;
-            case MAINT: return Card.CARD_TYPE_MAINT;
-            case BLANK: return Card.CARD_TYPE_PLACEHOLDER;
-            default: return DataAccessObject.ERROR;
+        void setDisplayedCardType() {
+            this.displayedCardType = this.enqueuedCardType;
+            setEnqueued(EMPTY);
         }
     }
 }

@@ -194,20 +194,14 @@ public class DataAccessObject {
         {
             String[] garageUnitList = new String[] {
                     "SRM-225",
-                    "SRM-266",
-                    "SRM-280",
-                    "SRM-2620U",
-                    "PB-770T",
-                    "CS-271T",
-                    "CS-600P",
-                    "HC-152",
-                    "PE-230",
-                    "PAS-266",
-                    "BRD-280",
-                    "PPT-266",
-                    "MS-31H",
-                    "TC-210",
-                    "WP-1000"
+                    "PB-770H",
+                    "DH232"
+            };
+
+            int[] modelResource = new int[] {
+                    R.drawable.srm_225,
+                    R.drawable.pb_770h,
+                    R.drawable.dh232
             };
 
             modelList = new ArrayList<>();
@@ -215,7 +209,7 @@ public class DataAccessObject {
             for(int i = 0; i < garageUnitList.length; i++) {
                 int offset = i + 1;
                 String serialSuffix = offset < 10 ? "0" + offset : String.valueOf(offset);
-                modelList.add(new Model(garageUnitList[i], "S999140010" + serialSuffix));
+                modelList.add(new Model(garageUnitList[i], "S999140010" + serialSuffix, modelResource[i]));
             }
         }
     }

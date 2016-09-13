@@ -31,6 +31,14 @@ public class MetricCalcs {
 //        return (int)(targetDp * (widthPx / density));
     }
 
+    public static int getScreenWidth() {
+        return Resources.getSystem().getDisplayMetrics().widthPixels;
+    }
+
+    public static int getScreenHeight() {
+        return Resources.getSystem().getDisplayMetrics().heightPixels;
+    }
+
     public static int getHeightForRatio(int widthOfRatio, int heightOfRatio) {
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
         int widthPx = metrics.widthPixels;

@@ -92,8 +92,8 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
 
                 switch(drawerView.getId()) {
                     case R.id.main_drawer_garage:
-                        boolean isNotSelf = !valueChange.getSelectedModel().equals(valueChange.getEnqueuedModelName());
-                        if(isNotSelf) valueChange.setQueuedModelName();
+                        boolean isNotSelf = !valueChange.getDisplayedModel().equals(valueChange.getEnqueuedModel());
+                        if(isNotSelf) valueChange.setEnqueuedModel();
 
                         break;
                     case R.id.main_drawer_nav:

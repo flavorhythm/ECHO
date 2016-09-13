@@ -22,7 +22,7 @@ import widget.EchoCard;
  */
 public class ModelInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     //TODO: use this to figure out what content to update. use Card static variables
-    private static final Card emptyCard = new Card(Card.CARD_TYPE_PLACEHOLDER, Card.CARD_SIZE_SMALL, R.drawable.placeholder, "empty");
+    private static final Card emptyCard = new Card(Card.CARD_TYPE_PLACEHOLDER, Card.CARD_SIZE_SMALL, R.drawable.ic_vector_placeholder, "No Data");
 
     private List<Card> cardList;
     private View.OnClickListener listener;
@@ -55,6 +55,7 @@ public class ModelInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         if(cardList != null && !cardList.isEmpty()) this.cardList.addAll(cardList);
         else this.cardList.add(emptyCard);
 
+        //notifyDataSetChanged();
         notifyDataSetChanged();
     }
 
@@ -79,8 +80,6 @@ public class ModelInfoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         cardHolder.cardImgWrapper.setBackgroundResource(colorList[position]);
         cardHolder.cardImage.setImageResource(card.getDrawableRes());
         cardHolder.cardTitle.setText(card.getCardTitle());
-
-
     }
 
     @Override

@@ -1,74 +1,103 @@
 package widget;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.TimeInterpolator;
+import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Region;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.support.v4.view.animation.LinearOutSlowInInterpolator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageSwitcher;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextSwitcher;
-import android.widget.TextView;
-import android.widget.ViewSwitcher;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
-import com.echo_usa.echo.DataAccessApplication;
-import com.echo_usa.echo.MainActivity;
 import com.echo_usa.echo.R;
-import com.echo_usa.echo.ValueChangeSupport;
 
 import java.util.List;
 
-import adapter.ModelInfoAdapter;
 import data.Card;
 import util.MetricCalcs;
 
 /**
  * Created by ZYuki on 6/30/2016.
  */
-public class ModelInfoView extends RelativeLayout implements Animation.AnimationListener {
+public class ModelInfoView extends View {
+    private static TimeInterpolator DECELERATE = new DecelerateInterpolator();
+    private static TimeInterpolator ACCEL_DECEL = new AccelerateDecelerateInterpolator();
+
     private static final int LEFT = 100;
     private static final int RIGHT = 200;
+    private static final int MAX_TRANS_Y = 200;
+    private static final int MAX_SHIFT = 5;
 
-    private Animation slideDownAnim, slideUpAnim;
-    private Animation noModelHideAnim;
+    private static final int IMG_HEIGHT = 250;
+    private static final int IMG_WIDTH = 350;
+    private static final int ON_BTM_IMG_SHDW_SIZE = 8;
+    private static final int ON_TOP_IMG_SHDW_SIZE = 5;
 
-    private Animation modelImageAnim;
-    private View noModelView;
-    private RelativeLayout lowerImageGroup;
-    private RecyclerView cardRecycler;
-    private ImageSwitcher upperImageSwitcher, lowerImageSwitcher;
+    private int modelImageHeight = MetricCalcs.dpToPixels(IMG_HEIGHT);
+    private int modelImageWidth = MetricCalcs.dpToPixels(IMG_WIDTH);
 
-    private TextSwitcher modelInfoTitleSwitcher;
+    private Paint whiteBgPaint;
+    private Rect upperWhiteBgBounds, lowerWhiteBgBounds;
+    private Rect onBtmImgShadowBounds, onTopImgShadowBounds;
+    private Rect upperImageBounds, lowerImageBounds;
+    private Rect upperImageMask, lowerImageMask;
+    private Rect originalUpperImage, originalLowerImage;
 
-//    private ValueChangeSupport valueChange = null;
+    private Bitmap upperImageBitmap, lowerImageBitmap;
 
-    private List<Card> enqueuedCardList;
+    private ValueAnimator moveBgDown, shiftImgIn;
+    private ValueAnimator moveBgUp, shiftImgOut;
 
-    private int enqueuedCardType = -1;
+    private AnimatorSet openDrawerAnimation, closeDrawerAnimation;
 
-    private int displayedCardType = -1;
+    private GradientDrawable onTopImgShadow, onBtmImgShadow;
 
-    private static Callback callback;
+    private Callback callback;
+    private DrawerState drawerState;
 
-//    @Override
-//    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-//
-//    }
+    private int imageShift = 0;
+    private int drawerTranslateY = 0;
+
+    int screenWidth = MetricCalcs.getScreenWidth();
+    int screenHeight = MetricCalcs.getScreenHeight();
+    int actionBarSize = MetricCalcs.getActionBarSize(getContext()); //TODO: check
+
+    int onBtmImgShadowHeight = MetricCalcs.dpToPixels(ON_BTM_IMG_SHDW_SIZE);
+    int onTopImgShadowHeight = MetricCalcs.dpToPixels(ON_TOP_IMG_SHDW_SIZE);
+
+    int imageLeft = (screenWidth - modelImageWidth) / 2;
+    int upperImageTop = screenHeight - actionBarSize - (2 * modelImageHeight);
+    int lowerImageTop = upperImageTop + modelImageHeight;
+
+    int onTopImgShadowTop = upperImageTop + modelImageHeight;
+    int onBtmImgShadowTop = lowerImageTop - onBtmImgShadowHeight;
+
+    //TODO: view function order8
+    //1. set model image <- requires image setter, image splitter and top/bottom drawable
+    //1.5 clear empty model view
+    //2. open this view to show recyclerview
+    //3. use the same code used in split to "move" image of unit
+
+    //TODO: required methods
+    //1. image setter, image splitter
+    //2. upper/lower image animation -> open/close/toggle
+    //3. swipe left/right
 
 
     public ModelInfoView(Context context) {this(context, null);}
@@ -79,410 +108,261 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
     public ModelInfoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
 
+        drawerState = new DrawerState();
 
+        setModelImage(R.drawable.srm_225);
 
-        init();
-    }
+        whiteBgPaint = new Paint();
+        whiteBgPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
 
-    private void init() {
-//        View.OnClickListener cardListener = null;
-//
-//        if(!isInEditMode()) {
-//            callback = (Callback)getContext();
-//            valueChange = callback.getValueChangeSupport();
-//            cardListener = callback.getListener();
-//        }
+        onTopImgShadowBounds = new Rect(0, onTopImgShadowTop, screenWidth, onTopImgShadowTop + onTopImgShadowHeight);
+        onBtmImgShadowBounds = new Rect(0, onBtmImgShadowTop, screenWidth, onBtmImgShadowTop + onBtmImgShadowHeight);
 
-//        noModelHideAnim = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
-//        noModelHideAnim.setAnimationListener(ModelInfoView.this);
+        onTopImgShadow = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_lower_fade);
+        onTopImgShadow.setBounds(onTopImgShadowBounds);
 
-//        slideImageUpAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_up);
-//        slideImageDownAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_down);
-//
-//        slideImageUpAnim.setAnimationListener(new Animation.AnimationListener() {
-//            @Override
-//            public void onAnimationStart(Animation animation) {
-//
-//            }
-//
-//            @Override
-//            public void onAnimationEnd(Animation animation) {
-//                updateRecycler(valueChange.getEnqueuedModelName(), enqueuedCardList);
-//                lowerImageGroup.setTranslationY(MetricCalcs.dpToPixels(0));
-//                lowerImageGroup.startAnimation(slideImageDownAnim);
-//
-//                enqueuedCardList = null;
-//            }
-//
-//            @Override
-//            public void onAnimationRepeat(Animation animation) {
-//
-//            }
-//        });
-//
-//        slideImageDownAnim.setAnimationListener(new Animation.AnimationListener() {
-//            @Override
-//            public void onAnimationStart(Animation animation) {
-//
-//            }
-//
-//            @Override
-//            public void onAnimationEnd(Animation animation) {
-//                lowerImageGroup.setTranslationY(MetricCalcs.dpToPixels(240));
-//            }
-//
-//            @Override
-//            public void onAnimationRepeat(Animation animation) {
-//
-//            }
-//        });
+        onBtmImgShadow = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_upper_fade);
+        onBtmImgShadow.setBounds(onBtmImgShadowBounds);
 
-//        if(valueChange == null && getContext().getApplicationContext() instanceof DataAccessApplication) {
-//            valueChange = ((DataAccessApplication)getContext().getApplicationContext()).getValueChangeSupport();
-//        }
-        //View.OnClickListener listener = ((MainActivity)getContext()).getCardListnener();
+        upperImageBounds = new Rect(imageLeft, upperImageTop, imageLeft + modelImageWidth, upperImageTop + modelImageHeight);
+        lowerImageBounds = new Rect(imageLeft, lowerImageTop, imageLeft + modelImageWidth, lowerImageTop + modelImageHeight);
 
-//        hideAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_out);
-//        showAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.no_model_fade_in);
+        upperImageMask = new Rect(imageLeft, upperImageTop, imageLeft + modelImageWidth, upperImageTop + modelImageHeight);
+        lowerImageMask = new Rect(imageLeft, lowerImageTop, imageLeft + modelImageWidth, lowerImageTop + modelImageHeight);
 
-        LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//        Log.v(this.toString(), (getRootView().getParent()).toString());
+        originalUpperImage = new Rect(imageLeft, upperImageTop, imageLeft + modelImageWidth, upperImageTop + modelImageHeight);
+        originalLowerImage =  new Rect(imageLeft, lowerImageTop, imageLeft + modelImageWidth, lowerImageTop + modelImageHeight);
 
-        inflater.inflate(R.layout.view_model_info, this, true);
-//        Log.v("test","test");
-//        noModelView = findViewById(R.id.no_model_view);
-        cardRecycler = (RecyclerView)findViewById(R.id.modelInfo_recycler_cards);
-        upperImageSwitcher = (ImageSwitcher)findViewById(R.id.modelInfo_image_upper);
-        lowerImageSwitcher = (ImageSwitcher)findViewById(R.id.modelInfo_image_lower);
-        modelInfoTitleSwitcher = (TextSwitcher)findViewById(R.id.modelInfo_text_titleText);
-        lowerImageGroup = (RelativeLayout) findViewById(R.id.modelInfo_group_lower_image);
-//
-        setupTextSwitcher();
-        setupImageSwitcher();
-//
-        cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        upperWhiteBgBounds = new Rect(0, 0, screenWidth, upperImageTop + modelImageHeight);
+        lowerWhiteBgBounds = new Rect(0, lowerImageTop, screenWidth, lowerImageTop + modelImageHeight);
 
-//        if(cardListener != null && getContext() instanceof MainActivity)
-//            cardRecycler.setAdapter(new ModelInfoAdapter(cardListener));
+        moveBgDown = ValueAnimator.ofInt(0, MetricCalcs.dpToPixels(MAX_TRANS_Y));
+        shiftImgIn = ValueAnimator.ofInt(0, MetricCalcs.dpToPixels(MAX_SHIFT));
 
-        moveImageLeftAnim();
-//
-//        Bitmap[] bitmapArray = splitImageBitmap();
-////
-//        upperImageSwitcher.setImageBitmap(bitmapArray[0]);
-//        lowerImageSwitcher.setImageBitmap(bitmapArray[1]);
+        moveBgUp = ValueAnimator.ofInt(MetricCalcs.dpToPixels(MAX_TRANS_Y), 0);
+        shiftImgOut = ValueAnimator.ofInt(MetricCalcs.dpToPixels(MAX_SHIFT), 0);
 
-//        if(!valueChange.getSelectedModel().equals(ValueChangeSupport.NO_SELECTION)) {
-//            noModelView.setVisibility(View.GONE);
-//            noModelView.setClickable(false);
-//
-//            setModelName(valueChange.getSelectedModel());
-//        }
+        moveBgDown.setInterpolator(DECELERATE);
+        moveBgUp.setInterpolator(ACCEL_DECEL);
 
-        upperImageSwitcher.setOnClickListener(new OnClickListener() {
+        moveBgDown.setDuration(250L);
+        shiftImgIn.setDuration(200L);
+        shiftImgIn.setStartDelay(100L);
+
+        moveBgUp.setDuration(250L);
+        shiftImgOut.setDuration(200L);
+        shiftImgOut.setStartDelay(100L);
+
+        ValueAnimator.AnimatorUpdateListener translateYListener = new ValueAnimator.AnimatorUpdateListener() {
             @Override
-            public void onClick(View v) {
-                moveImageLeftAnim();
+            public void onAnimationUpdate(ValueAnimator animation) {
+                drawerTranslateY = (int)animation.getAnimatedValue();
+
+                updateContentBounds();
+                invalidate();
+            }
+        };
+
+        ValueAnimator.AnimatorUpdateListener imgShiftListener = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                imageShift = (int)animation.getAnimatedValue();
+
+                updateContentBounds();
+                invalidate();
+            }
+        };
+
+        moveBgDown.addUpdateListener(translateYListener);
+        moveBgUp.addUpdateListener(translateYListener);
+
+        shiftImgIn.addUpdateListener(imgShiftListener);
+        shiftImgOut.addUpdateListener(imgShiftListener);
+
+        openDrawerAnimation = new AnimatorSet();
+        openDrawerAnimation.play(moveBgDown).with(shiftImgIn);
+        //openDrawerAnimation.setStartDelay(100L);
+        openDrawerAnimation.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+
+                drawerState.setDrawerStateClosed(false);
+                callback.restoreListeners();
             }
         });
 
-//
-//        LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//        setLayoutParams(params);
+        closeDrawerAnimation = new AnimatorSet();
+        closeDrawerAnimation.play(moveBgUp).with(shiftImgOut);
+        closeDrawerAnimation.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
 
-//        upperImageSwitcher.getLayoutParams().height = MetricCalcs.getHeightForRatio(4,3);
-//        upperImageSwitcher.requestLayout();
-//
-//        findViewById(R.id.modelInfo_group_image).getLayoutParams().height = MetricCalcs.getHeightForRatio(4,3);
-//        findViewById(R.id.modelInfo_group_image).requestLayout();
+                drawerState.setDrawerStateClosed(true);
+                callback.updateRecycler();
+            }
+        });
 
-
-       // inflater.inflate(R.layout.view_model_info, (RelativeLayout)getRootView(), true);
-
-//        final Animation modelInfoAnimOpen = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_up);
-//
-//        valueChange = ((DataAccessApplication)getActivity().getApplication()).getValueChangeSupport();
-//        modelImageAnim = AnimationUtils.loadAnimation(getContext(), R.anim.model_info_slide_down);
-//        modelImageAnim.setAnimationListener(new Animation.AnimationListener() {
-//            @Override
-//            public void onAnimationStart(Animation animation) {
-//
-//            }
-//
-//            @Override
-//            public void onAnimationEnd(Animation animation) {
-//                recyclerViewGroup.startAnimation(modelInfoAnimOpen);
-//                updateContentModelSwitch(valueChange.getSelectedModel());
-//            }
-//
-//            @Override
-//            public void onAnimationRepeat(Animation animation) {
-//
-//            }
-//        });
-////
-//        if(!hasModelChangeListener) {
-//            valueChange.addPropertyChangeListener(this);
-//            hasModelChangeListener = true;
-//        }
-    }
-
-    private void removeNoModelView() {
-//        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
-//            Log.d("FragmentBase", "updateFragContent: noModelView removed");
-//
-////            noModelView.startAnimation(noModelHideAnim);
-//        }
+        updateContentBounds();
     }
 
     @Override
-    public void onAnimationStart(Animation animation) {
-
+    public boolean onTouchEvent(MotionEvent event) {
+        return drawerState.isDrawerClosed();
     }
 
     @Override
-    public void onAnimationEnd(Animation animation) {
-//        noModelView.setVisibility(View.GONE);
-//        noModelView.setClickable(false);
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        int resolvedWidth = View.resolveSize(desiredWidth(), widthMeasureSpec);
+        int resolvedHeight = View.resolveSize(desiredHeight(), heightMeasureSpec);
+
+        setMeasuredDimension(resolvedWidth, resolvedHeight);
     }
 
     @Override
-    public void onAnimationRepeat(Animation animation) {
+    protected void onDraw(Canvas canvas) {
+        if(onTopImgShadow != null) onTopImgShadow.draw(canvas);
+        if(onBtmImgShadow != null) onBtmImgShadow.draw(canvas);
 
+        if(upperWhiteBgBounds != null) canvas.drawRect(upperWhiteBgBounds, whiteBgPaint);
+        if(lowerWhiteBgBounds != null) canvas.drawRect(lowerWhiteBgBounds, whiteBgPaint);
+
+        if(upperImageBounds != null && upperImageBitmap != null) {
+            if(upperImageMask != null) canvas.clipRect(upperImageMask, Region.Op.REPLACE);
+            canvas.drawBitmap(upperImageBitmap, upperImageBounds.left, upperImageBounds.top, null);
+        }
+
+        if(lowerImageBounds != null && lowerImageBitmap != null) {
+            if(lowerImageMask != null) canvas.clipRect(lowerImageMask, Region.Op.REPLACE);
+            canvas.drawBitmap(lowerImageBitmap, lowerImageBounds.left, lowerImageBounds.top, null);
+        }
     }
 
-    @Override
-    protected void onAnimationStart() {
-        super.onAnimationStart();
+    private void setModelImage(int resource) {
+        upperImageBitmap = ModelInfoView.splitImageBitmap(getContext(), resource)[0];
+        lowerImageBitmap = ModelInfoView.splitImageBitmap(getContext(), resource)[1];
     }
 
-    @Override
-    protected void onAnimationEnd() {super.onAnimationEnd();}
+    public void updateModelImage(int resource) {
+        setModelImage(resource);
 
-//    public void startAnimation(boolean toShow) {
-//        if(toShow) startAnimation(showAnimation);
-//        else startAnimation(hideAnimation);
-//    }
+        updateContentBounds();
+        invalidate();
 
-    public void setModelName(String modelName) {
-        modelInfoTitleSwitcher.setText(modelName);
-        changeModelImage();
-        removeNoModelView();
+        if(!drawerState.isDrawerClosed()) closeDrawer();
+        else callback.updateRecycler();
     }
 
-    //TODO: need to build this
-    public void setImage(){}
+    public void setCallback(Callback callback) {this.callback = callback;}
 
-    public void onMenuItemChanged(int cardType, List<Card> cardList) {
-        displayedCardType = cardType;
-
-
-
-        if(enqueuedCardType == -1) {
-            enqueuedCardType = cardType;
-            enqueuedCardList = cardList;
-            slideImageDownAnim();
+    public void toggleDrawer(boolean isUpdateRequired) {
+        if(isUpdateRequired) {
+            if(drawerState.isDrawerClosed()) callback.updateRecycler();
+            else closeDrawer();
         } else {
-            enqueuedCardType = cardType;
-            enqueuedCardList = cardList;
-            slideImageUpAnim(true);
-        }
-        //TODO: start lower image animation
-    }
-
-    private void slideImageDownAnim() {
-        lowerImageGroup
-                .animate()
-                .translationY(MetricCalcs.dpToPixels(210))
-                .setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-//                        updateRecycler(valueChange.getEnqueuedModelName(), enqueuedCardList);
-                        enqueuedCardList = null; //TODO: necessary?
-
-                        doSwitcherAnim(true);
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        animation.removeAllListeners();
-                    }
-
-                    @Override public void onAnimationCancel(Animator animation) {}
-                    @Override public void onAnimationRepeat(Animator animation) {}
-                })
-                .setStartDelay(100)
-                .setInterpolator(new FastOutSlowInInterpolator())
-                .start();
-
-        cardRecycler
-                .animate()
-                .translationY(0)
-                .setInterpolator(new FastOutSlowInInterpolator())
-                .start();
-    }
-
-    private void slideImageUpAnim(boolean includeSlideDown) {
-        if(includeSlideDown) {
-            lowerImageGroup
-                    .animate()
-                    .translationY(MetricCalcs.dpToPixels(0))
-                    .setListener(new Animator.AnimatorListener() {
-                        @Override public void onAnimationStart(Animator animation) {
-                            doSwitcherAnim(false);
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            slideImageDownAnim();
-                            animation.removeAllListeners();
-                        }
-
-                        @Override public void onAnimationCancel(Animator animation) {}
-                        @Override public void onAnimationRepeat(Animator animation) {}
-                    })
-                    .setInterpolator(new LinearOutSlowInInterpolator())
-                    .start();
-        } else {
-            lowerImageGroup
-                    .animate()
-                    .translationY(MetricCalcs.dpToPixels(0))
-                    .setListener(new Animator.AnimatorListener() {
-                        @Override public void onAnimationStart(Animator animation) {
-                            doSwitcherAnim(false);
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            animation.removeAllListeners();
-                        }
-
-                        @Override public void onAnimationCancel(Animator animation) {}
-                        @Override public void onAnimationRepeat(Animator animation) {}
-                    })
-                    .setInterpolator(new LinearOutSlowInInterpolator())
-                    .start();
-        }
-
-        cardRecycler
-                .animate()
-                .translationY(150)
-                .setStartDelay(50)
-                .setInterpolator(new FastOutSlowInInterpolator())
-                .start();
-    }
-
-    private void doSwitcherAnim(boolean offset) {
-        int offsetVal = 0;
-        if(offset) offsetVal = 4;
-
-        upperImageSwitcher.getCurrentView()
-                .animate()
-                .translationY(MetricCalcs.dpToPixels(offsetVal))
-                .start();
-
-        lowerImageSwitcher.getCurrentView()
-                .animate()
-                .translationY(MetricCalcs.dpToPixels(-1 * offsetVal))
-                .start();
-    }
-
-    private void moveImageLeftAnim() {
-        Drawable[] drawables = splitImageDrawable();
-
-        upperImageSwitcher.setImageDrawable(drawables[0]);
-        lowerImageSwitcher.setImageDrawable(drawables[1]);
-    }
-
-    private void moveImageRightAnim() {
-
-    }
-
-    private void changeModelImage() {
-        enqueuedCardType = -1;
-        slideImageUpAnim(false);
-    }
-
-    public void updateRecycler(String modelName, List<Card> cardList) {
-        ((ModelInfoAdapter)cardRecycler.getAdapter()).updateCardData(modelName, cardList);
-    }
-
-    private void swipeModel(int direction) {
-        //TODO: change models when button is clicked or image is swiped
-        //TODO: will close model image tray
-        //TODO: fires changeModelImage method
-        switch(direction) {
-            case LEFT: break;
-            case RIGHT: break;
+            toggleDrawer();
         }
     }
 
-    private void setupTextSwitcher() {
-        modelInfoTitleSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
-            @Override
-            public View makeView() {
-                TextView modelInfoTitle = new TextView(getContext());
-                modelInfoTitle.setTextSize(18);
-
-                int padding = MetricCalcs.dpToPixels(10);
-                modelInfoTitle.setPadding(padding, padding, padding, padding);
-
-                modelInfoTitle.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                modelInfoTitle.setTextColor(ContextCompat.getColor(getContext(),R.color.colorAccent));
-                modelInfoTitle.setAllCaps(true);
-
-                return modelInfoTitle;
-            }
-        });
-
-        Animation in = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_in);
-        Animation out = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_out);
-
-        modelInfoTitleSwitcher.setInAnimation(in);
-        modelInfoTitleSwitcher.setOutAnimation(out);
+    private void openDrawer() {
+        AnimatorSet localAnimator = openDrawerAnimation.clone();
+        localAnimator.start();
+        callback.animateRecyclerUp();
     }
 
-    private void setupImageSwitcher() {
-        final Bitmap[] bitmapArray = splitImageBitmap();
+    private void closeDrawer() {
+        AnimatorSet localAnimator = closeDrawerAnimation.clone();
+        localAnimator.start();
+        callback.animateRecyclerDown();
+    }
 
-//        BitmapDrawable drawable = new BitmapDrawable(getResources(), bitmapArray[0]);
+    private void toggleDrawer() {
+        if(drawerState.isDrawerClosed()) openDrawer();
+        else closeDrawer();
+    }
+    private void updateContentBounds() {
+        if(onBtmImgShadowBounds != null) {
+            onBtmImgShadowBounds.top = onBtmImgShadowTop + drawerTranslateY;
+            onBtmImgShadowBounds.bottom = onBtmImgShadowTop + onBtmImgShadowHeight + drawerTranslateY;
 
-        upperImageSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
-            @Override
-            public View makeView() {
-                return new ImageView(getContext());
-            }
-        });
+            onBtmImgShadow.setBounds(onBtmImgShadowBounds);
+        }
 
-        lowerImageSwitcher.setFactory(new ViewSwitcher.ViewFactory() {
-            @Override
-            public View makeView() {
-                return new ImageView(getContext());
-            }
-        });
+        if(lowerWhiteBgBounds != null) {
+            lowerWhiteBgBounds.top = originalLowerImage.top + drawerTranslateY;
+            lowerWhiteBgBounds.bottom = originalLowerImage.bottom + drawerTranslateY;
+        }
 
-        Animation in = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_in);
-        Animation out = AnimationUtils.loadAnimation(getContext(), R.anim.text_slide_out);
+        if(upperImageBounds != null) {
+            upperImageBounds.top = originalUpperImage.top + imageShift;
+            upperImageBounds.bottom = originalUpperImage.bottom + imageShift;
+        }
 
-        upperImageSwitcher.setInAnimation(in);
-        upperImageSwitcher.setOutAnimation(out);
+        if(lowerImageBounds != null) {
+            lowerImageBounds.top = originalLowerImage.top + drawerTranslateY - imageShift;
+            lowerImageBounds.bottom = originalLowerImage.bottom + drawerTranslateY - imageShift;
+        }
 
-        lowerImageSwitcher.setInAnimation(in);
-        lowerImageSwitcher.setOutAnimation(out);
+        if(lowerImageMask != null) {
+            lowerImageMask.top = originalLowerImage.top + drawerTranslateY;
+            lowerImageMask.bottom = originalLowerImage.bottom + drawerTranslateY;
+        }
+    }
 
-//        upperImageSwitcher.setImageBitmap(bitmapArray[0]);
-//        lowerImageSwitcher.setImageBitmap(bitmapArray[1]);
+    private int desiredWidth() {
+        return MetricCalcs.getScreenWidth();
+    }
+
+    private int desiredHeight() {
+        int upperBgHeight;
+        if(upperWhiteBgBounds == null) upperBgHeight = 0;
+        else upperBgHeight = upperWhiteBgBounds.height();
+
+        int lowerBgHeight;
+        if(lowerWhiteBgBounds == null) lowerBgHeight = 0;
+        else lowerBgHeight = lowerWhiteBgBounds.height();
+
+        return upperBgHeight + lowerBgHeight;
+    }
+
+    private static Drawable sliceImageBitmap(Context context, Bitmap bitmap, int imgOffset) {
+        return new BitmapDrawable(context.getResources(), Bitmap.createBitmap(bitmap, 0, imgOffset, bitmap.getWidth(), bitmap.getHeight() - imgOffset));
+    }
+
+    private static Drawable[] splitImageDrawable(Context context) {
+        Drawable[] splitImages = new Drawable[2];
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.srm_225);
+        int splitYPos = bitmap.getHeight() / 2;
+
+        splitImages[0] = new BitmapDrawable(context.getResources(), Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos));
+        splitImages[1] = new BitmapDrawable(context.getResources(), Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos));
+
+        return splitImages;
+    }
+
+    private static Bitmap[] splitImageBitmap(Context context, int drawableResource) {
+        Bitmap[] bitmapArray = new Bitmap[2];
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), drawableResource);
+        int splitYPos = bitmap.getHeight() / 2;
+
+        bitmapArray[0] = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos);
+        bitmapArray[1] = Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos);
+
+        return bitmapArray;
     }
 
     private Drawable[] splitImageDrawable() {
-        Drawable[] drawableArray = new Drawable[2];
+        Drawable[] splitImages = new Drawable[2];
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.srm_225);
         int splitYPos = bitmap.getHeight() / 2;
 
-        drawableArray[0] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos));
-        drawableArray[1] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos));
+        splitImages[0] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos));
+        splitImages[1] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos));
 
-        return drawableArray;
+        return splitImages;
     }
 
     private Bitmap[] splitImageBitmap() {
@@ -496,8 +376,40 @@ public class ModelInfoView extends RelativeLayout implements Animation.Animation
         return bitmapArray;
     }
 
+    private void moveImageLeftAnim() {
+        Drawable[] drawables = splitImageDrawable();
+
+    }
+
+    private void moveImageRightAnim() {
+
+    }
+
+    public void updateRecycler(String modelName, List<Card> cardList) {
+    }
+
+    private void swipeModel(int direction) {
+        //TODO: change models when button is clicked or image is swiped
+        //TODO: will close model image tray
+        //TODO: fires changeModelImage method
+        switch(direction) {
+            case LEFT: break;
+            case RIGHT: break;
+        }
+    }
+
+    private class DrawerState {
+        boolean drawerClosed = true;
+
+        void setDrawerStateClosed(boolean closed) {drawerClosed = closed;}
+        boolean isDrawerClosed() {return drawerClosed;}
+    }
+
     public interface Callback {
-        ValueChangeSupport getValueChangeSupport();
-        View.OnClickListener getListener();
+        boolean updateRecycler();
+        void nullifyListeners();
+        void restoreListeners();
+        void animateRecyclerUp();
+        void animateRecyclerDown();
     }
 }

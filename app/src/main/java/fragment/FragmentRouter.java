@@ -53,11 +53,8 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
     private static FragName enqueuedFragName;
 
     private static FragmentManager fragmentManager;
-    private static ValueChangeSupport valueChange;
 
     private static TransitionDrawable actionBarBg;
-    private static View noModelView;
-    private static Animation noModelHideAnim, noModelShowAnim;
     private static Activity activity;
 
     private static Map<FragName, Fragment> fragMap;
@@ -75,12 +72,6 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
 
             FragmentRouter.fragmentManager = ((MainActivity)activity).getSupportFragmentManager();
             FragmentRouter.actionBarBg = (TransitionDrawable)activity.findViewById(R.id.main_appbar).getBackground();
-            //FragmentRouter.noModelView = activity.findViewById(R.id.no_model_view);
-
-//            FragmentRouter.noModelHideAnim = AnimationUtils.loadAnimation(activity, R.anim.no_model_fade_out);
-//            FragmentRouter.noModelShowAnim = AnimationUtils.loadAnimation(activity, R.anim.no_model_fade_in);
-
-            FragmentRouter.valueChange = ((DataAccessApplication)activity.getApplication()).getValueChangeSupport();
 
             displayedFragName = BLANK;
             enqueuedFragName = BLANK;
@@ -100,39 +91,6 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
         //TODO: prevent overrides before the queue is cleared
         FragmentRouter.enqueuedFragName = enqueuedFragName;
     }
-
-//    public static void hideNoModelView() {
-//        if((noModelView != null) && (noModelView.getVisibility() != View.GONE)) {
-//            Log.d("FragmentBase", "updateFragContent: noModelView removed");
-//
-////            noModelView.startAnimation(noModelHideAnim);
-////            noModelHideAnim.setAnimationListener(FragmentRouter.thisInstance);
-//        }
-//    }
-
-//    public static void showNoModelView() {
-//        if((noModelView != null) && (noModelView.getVisibility() != View.VISIBLE)) {
-//            Log.d("FragmentBase", "updateFragContent: noModelView removed");
-//
-//            //TODO: first show might need to be moved
-//            noModelView.startAnimation(noModelShowAnim);
-//            noModelShowAnim.setAnimationListener(FragmentRouter.thisInstance);
-//        }
-//    }
-
-//    @Override
-//    public void onAnimationStart(Animation animation) {}
-//
-//    @Override
-//    public void onAnimationEnd(Animation animation) {
-//        final boolean isVisible = noModelView.getVisibility() == View.VISIBLE;
-//
-//        noModelView.setVisibility(isVisible ? View.GONE : View.VISIBLE);
-//        noModelView.setClickable(!isVisible);
-//    }
-//
-//    @Override
-//    public void onAnimationRepeat(Animation animation) {}
 
     public static void actionBarFadeScroll(int scrollY, int actionBarSize, float rangeMax) {
         final float rangeMin = rangeMax - (actionBarSize / 2);
@@ -181,15 +139,7 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
 
             if(!popBackToFragment()) return replaceFragment();
             else return true;
-
-//            return replaceFragment();
-            //Initial fragment setup
-//            if(getEnqueuedFragName().equals(HOME)) return popBackToFragment();
-//            else return replaceFragment();
         }
-
-        //Order is important... this is the initial fragment replacement
-        //if(isThisFragDisplayed(BLANK)) return initialFragmentReplacement();
 
         return isThisFragDisplayed(BLANK) && initialFragmentReplacement();
     }
@@ -228,13 +178,12 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
         boolean isEnqueuedModelInfo = getEnqueuedFragName().isModelInfo();
         boolean isDisplayedModelInfo = getDisplayedFragName().isModelInfo();
 
-        if(isEnqueuedModelInfo && isDisplayedModelInfo) doModelInfoUpdate();
-        else if(isEnqueuedModelInfo) {
+        if(isEnqueuedModelInfo) {
             fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
                 @Override
                 public void onBackStackChanged() {
                     Log.v("FragmentRouter", "backstackchanged");
-                    doModelInfoUpdate();
+                    //doModelInfoUpdate();
                     fragmentManager.removeOnBackStackChangedListener(this);
                 }
             });
@@ -250,17 +199,32 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
             //toggleNoModelView();
         }
 
+//        if(isEnqueuedModelInfo && isDisplayedModelInfo) doModelInfoUpdate();
+//        else if(isEnqueuedModelInfo) {
+//            fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+//                @Override
+//                public void onBackStackChanged() {
+//                    Log.v("FragmentRouter", "backstackchanged");
+//                    doModelInfoUpdate();
+//                    fragmentManager.removeOnBackStackChangedListener(this);
+//                }
+//            });
+//
+//            doTransaction(SWAP_TRANS_CONFIG);
+//            toggleActionBarBg(getEnqueuedFragName());
+//            //toggleNoModelView();
+//
+////            doModelInfoUpdate();
+//        } else {
+//            doTransaction(SWAP_TRANS_CONFIG);
+//            toggleActionBarBg(getEnqueuedFragName());
+//            //toggleNoModelView();
+//        }
+
         setDisplayedFragName(getEnqueuedFragName());
         setEnqueuedFragName(null);
         return true;
     }
-
-//    private static void toggleNoModelView() {
-//        if(isModelInfoFragment(getEnqueuedFragName())) {
-//            if(valueChange.getSelectedModel().equals("no_selection")) showNoModelView();
-//            else hideNoModelView();
-//        } else hideNoModelView();
-//    }
 
     private static boolean popBackToFragment() {
         Log.v("FragmentRouter", "stage 3");
@@ -276,33 +240,21 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
             setDisplayedFragName(getEnqueuedFragName());
             setEnqueuedFragName(null);
 
-            //toggleNoModelView();
             return true;
         }
 
         return false;
-
-//        toggleActionBarBg(getEnqueuedFragName());
-//        setDisplayedFragName(getEnqueuedFragName());
-//        toggleNoModelView();
-//        toggleActionBarBg(HOME);
-//
-//        setDisplayedFragName(HOME);
-//        setEnqueuedFragName(null);
-
-//        hideNoModelView();
-//        return true;
     }
 
     private static void doModelInfoUpdate() {
         Fragment modelInfoFrag = fragmentManager.findFragmentByTag(MODEL_INFO.toString());
-        if(modelInfoFrag instanceof FragmentModelInfo)
-            ((FragmentModelInfo)modelInfoFrag).updateContentFragSwitch();
-        else Snackbar.make(
-                activity.findViewById(R.id.main_drawer_layout),
-                "not working",
-                Snackbar.LENGTH_SHORT
-        ).show();
+//        if(modelInfoFrag instanceof FragmentModelInfo)
+//            //((FragmentModelInfo)modelInfoFrag).updateContentFragSwitch();
+//        else Snackbar.make(
+//                activity.findViewById(R.id.main_drawer_layout),
+//                "not working",
+//                Snackbar.LENGTH_SHORT
+//        ).show();
     }
 
     //TODO: must revise to work with most recent changes.
@@ -368,11 +320,6 @@ public class FragmentRouter /*implements Animation.AnimationListener*/ {
         if(getDisplayedFragName().isModelInfo()) return MODEL_INFO;
         else return getDisplayedFragName();
     }
-
-//    private static String getBackStackTag(FragName fragName) {
-//        if(getDisplayedFragName().equals(HOME)) return ROOT_FRAG;
-//        else return fragName.toString();
-//    }
 
     private static void toggleActionBarBg(FragName toDisplayFragName) {
         if(toDisplayFragName.equals(HOME)) actionBarBg.reverseTransition(ACTION_BAR_TRANS);
