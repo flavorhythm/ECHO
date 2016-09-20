@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Rect;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Window;
 
 import com.echo_usa.echo.R;
 
@@ -16,6 +18,8 @@ import com.echo_usa.echo.R;
 public class MetricCalcs {
     public static final int WIDTH_RATIO_16 = 16;
     public static final int HEIGHT_RATIO_9 = 9;
+
+    private static int statusHeightInPx = 0;
 
     public static int dpToPixels(int targetDp) {
 //        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
@@ -38,6 +42,9 @@ public class MetricCalcs {
     public static int getScreenHeight() {
         return Resources.getSystem().getDisplayMetrics().heightPixels;
     }
+
+    public static void setStatusBarHeight(int height) {statusHeightInPx = height;}
+    public static int getStatusBarHeight() {return statusHeightInPx;}
 
     public static int getHeightForRatio(int widthOfRatio, int heightOfRatio) {
         DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();

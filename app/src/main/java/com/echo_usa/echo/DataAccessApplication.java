@@ -6,27 +6,35 @@ import android.util.Log;
 import data.DataAccessObject;
 
 /**
- * Created by ZYuki on 6/28/2016.
+ * Created by Zeno Yuki on 6/28/2016.
+ * Extends the Application class to give the entire application access to helper classes.
+ * Accessible only by classes that have access to Activity.getApplication()
  */
 public class DataAccessApplication extends Application {
-    private static DataAccessObject dataAccess;
-    private static ValueChangeSupport valueChange;
+    /**
+     * VARIABLES
+     */
+    private static DataAccessObject mDataAccess;
+    private static ValueChangeSupport mValueChange;
 
+    /**
+     * OVERRIDES
+     */
+    /** onCreate override method; instantiates helper classes DataAcessObject and ValueChangeSupport */
     @Override
     public void onCreate() {
         super.onCreate();
 
-        if(dataAccess == null) dataAccess = new DataAccessObject(DataAccessApplication.this);
-        if(valueChange == null) valueChange = new ValueChangeSupport();
+        if(mDataAccess == null) mDataAccess = new DataAccessObject(DataAccessApplication.this);
+        if(mValueChange == null) mValueChange = new ValueChangeSupport();
     }
 
-    public DataAccessObject getDataAccessObject() {
-        Log.d("DataAccessApplication", "getDataAccessObject");
-        return dataAccess;
-    }
+    /**
+     * PUBLICS
+     */
+    /** Gets instance of DataAccessObject */
+    public DataAccessObject getDataAccessObject() {return mDataAccess;}
 
-    public ValueChangeSupport getValueChangeSupport() {
-        Log.d("DataAccessApplication", "getValueChangeSupport");
-        return valueChange;
-    }
+    /** Gets instance of ValueChangeSupport */
+    public ValueChangeSupport getValueChangeSupport() {return mValueChange;}
 }

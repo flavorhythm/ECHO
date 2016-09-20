@@ -19,6 +19,7 @@ public class DataAccessObject {
     private List<Card> specsCardList;
     private List<Card> maintCardList;
     private List<Model> modelList;
+    private List<ModelFiles> modelFiles;
 
     private List<Specs> specsList;
 
@@ -46,6 +47,8 @@ public class DataAccessObject {
                 return new ArrayList<>();
         }
     }
+
+    public List<ModelFiles> getFiles() {return modelFiles;}
 
     public List<Model> getModelList() {
         return modelList;
@@ -210,6 +213,29 @@ public class DataAccessObject {
                 int offset = i + 1;
                 String serialSuffix = offset < 10 ? "0" + offset : String.valueOf(offset);
                 modelList.add(new Model(garageUnitList[i], "S999140010" + serialSuffix, modelResource[i]));
+            }
+        }
+
+        {
+            String[] titleList = new String[] {
+                    "Quick Start Guide",
+                    "User Manual",
+                    "Safety Manual",
+                    "Parts Catalog",
+                    "Warranty Statement",
+                    "You-Can Kit",
+                    "Service Parts",
+                    "Step-By-Step",
+                    "Dimensions",
+                    "Engine",
+                    "Eng. Peripherals",
+                    "Drive System"
+            };
+
+            modelFiles = new ArrayList<>();
+
+            for(int i = 0; i < titleList.length; i++) {
+                modelFiles.add(new ModelFiles(titleList[i], "subtext", R.drawable.ic_vector_docs_dark));
             }
         }
     }

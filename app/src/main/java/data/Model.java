@@ -5,18 +5,26 @@ package data;
  */
 public class Model {
     //TODO: saves image bitmaps here?
+    public static final boolean EMPTY_FLAG = true;
+
     private String modelType;
     private String modelName;
     private String serialNum;
     private int imgResource;
 
+    private boolean empty = false;
+
     public Model() {}
+
+    public Model(boolean empty) {this.empty = empty;}
 
     public Model(String modelName, String serialNum, int imgResource) {
         this.modelName = modelName;
         this.serialNum = serialNum;
         this.imgResource = imgResource;
     }
+
+    public boolean isEmpty() {return empty;}
 
     public void setModelType(String modelType) {this.modelType = modelType;}
     public void setSerialNum(String serialNum) {this.serialNum = serialNum;}

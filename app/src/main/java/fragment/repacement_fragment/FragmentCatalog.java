@@ -3,13 +3,10 @@ package fragment.repacement_fragment;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.os.AsyncTaskCompat;
-import android.support.v4.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,13 +20,13 @@ import fragment.FragmentBase;
 import util.MetricCalcs;
 
 /**
- * Created by zyuki on 6/2/2016.
+ * Created by zyuki on 9/16/2016.
  */
-public class FragmentLocator extends FragmentBase {
-    public static FragmentLocator thisFragment;
+public class FragmentCatalog extends FragmentBase {
+    public static FragmentCatalog thisFragment;
 
-    public static FragmentLocator newInstance() {
-        if(thisFragment == null) thisFragment = new FragmentLocator();
+    public static FragmentCatalog newInstance() {
+        if(thisFragment == null) thisFragment = new FragmentCatalog();
         return thisFragment;
     }
 
@@ -41,13 +38,13 @@ public class FragmentLocator extends FragmentBase {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        int layoutRes = R.layout.frag_locator;
+        int layoutRes = R.layout.frag_catalog;
         View fragView = inflater.inflate(layoutRes, container, false);
         //((TextView)fragView.findViewById(R.id.test)).setText(callback.getFragName());
 
-        ImageView image = (ImageView)fragView.findViewById(R.id.test_map);
+        ImageView image = (ImageView)fragView.findViewById(R.id.test_catalog);
         ImageAsyncTask task = new ImageAsyncTask(image);
-        AsyncTaskCompat.executeParallel(task, R.drawable.maps);
+        AsyncTaskCompat.executeParallel(task, R.drawable.catalog);
 
         return fragView;
     }
@@ -92,7 +89,7 @@ public class FragmentLocator extends FragmentBase {
             // Raw height and width of image
             final int height = options.outHeight;
             final int width = options.outWidth;
-            int inSampleSize = 3;
+            int inSampleSize = 2;
 
             if (height > reqHeight || width > reqWidth) {
 
@@ -111,7 +108,7 @@ public class FragmentLocator extends FragmentBase {
         }
 
         public Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-                                                             int reqWidth, int reqHeight) {
+                                                      int reqWidth, int reqHeight) {
 
             // First decode with inJustDecodeBounds=true to check dimensions
             final BitmapFactory.Options options = new BitmapFactory.Options();

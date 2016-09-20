@@ -11,6 +11,7 @@ public enum FragName {
     BLANK("blank_container"),
     HOME("Home"),
     GUIDE("Beginner's Guide"),
+    CATALOG("Catalog"),
     LOCATOR("Dealer Locator"),
     SETTINGS("Settings"),
     CONTACT("Contact Us"),
@@ -40,12 +41,10 @@ public enum FragName {
         switch(menuId) {
             case R.id.slide_home:
                 return HOME;
-            case R.id.slide_docs:
-                return DOCS;
-            case R.id.slide_maintenace:
-                return MAINT;
-            case R.id.slide_specs:
-                return SPECS;
+            case R.id.slide_modelInfo:
+                return MODEL_INFO;
+            case R.id.slide_catalog:
+                return CATALOG;
             case R.id.slide_guide:
                 return GUIDE;
             case R.id.slide_locator:

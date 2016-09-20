@@ -86,7 +86,7 @@ public class SettingsArrow extends ImageView {
             arrowState = ARROW_STATE_DOWN;
         }
 
-        toggleMenuVisibility();
+        //toggleMenuVisibility();
 
         setOnClickListener(clickToAnimateListener);
     }

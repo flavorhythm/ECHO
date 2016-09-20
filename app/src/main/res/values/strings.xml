@@ -25,4 +25,5 @@
     <string name="V58_URL">http://www.echocordless.com/</string>
     <string name="no_unit_selected">No unit selected</string>
     <string name="pick_unit">Pick a unit from My Garage</string>
+    <string name="catalog">Catalog</string>
 </resources>

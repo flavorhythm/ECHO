@@ -4,15 +4,13 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
@@ -25,18 +23,18 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import adapter.ModelInfoAdapter;
-import data.Card;
 import data.Model;
 import fragment.FragmentBase;
 import util.MetricCalcs;
 import widget.EmptyModelView;
-import widget.ModelInfoView;
+import widget.ModelDrawerView;
+import widget.ModelInfoList;
 
 /**
  * Created by zyuki on 7/15/2016.
  */
 public class FragmentModelInfo extends FragmentBase
-        implements PropertyChangeListener, View.OnClickListener, ModelInfoView.Callback {
+        implements PropertyChangeListener, View.OnClickListener, ModelDrawerView.Callback {
 
     private static FragmentModelInfo thisFragment;
     private static boolean hasModelChangeListener = false;
@@ -46,14 +44,15 @@ public class FragmentModelInfo extends FragmentBase
 
     private CardTypeCheck cardTypeCheck;
 
-    private RecyclerView cardRecycler;
+    //private RecyclerView cardRecycler;
+    private ModelInfoList listView;
 
     private TextSwitcher modelInfoTitleSwitcher;
 
-    private Button manualBtn, maintenanceBtn, specsBtn;
+    //private Button manualBtn, maintenanceBtn, specsBtn;
     private EmptyModelView emptyModelView;
 
-    private ModelInfoView modelInfoView;
+    private ModelDrawerView modelDrawerView;
 
     public static FragmentModelInfo newInstance() {
         if(thisFragment == null) thisFragment = new FragmentModelInfo();
@@ -91,73 +90,65 @@ public class FragmentModelInfo extends FragmentBase
         int layoutRes = R.layout.frag_model_info;
         View fragView = inflater.inflate(layoutRes, container, false);
 
-        modelInfoView = (ModelInfoView)fragView.findViewById(R.id.modelInfo_view);
+        modelDrawerView = (ModelDrawerView)fragView.findViewById(R.id.modelInfo_view);
         emptyModelView = (EmptyModelView)fragView.findViewById(R.id.modelInfo_empty);
 
-        manualBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_documentation);
-        maintenanceBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_maintenance);
-        specsBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_specs);
+//        manualBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_documentation);
+//        maintenanceBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_maintenance);
+//        specsBtn = (Button)fragView.findViewById(R.id.modelInfo_btn_specs);
 
-        cardRecycler = (RecyclerView)fragView.findViewById(R.id.modelInfo_recycler_cards);
+        listView = (ModelInfoList)fragView.findViewById(R.id.modelInfo_docs_list);
+
+
+        //cardRecycler = (RecyclerView)fragView.findViewById(R.id.modelInfo_recycler_cards);
         modelInfoTitleSwitcher = (TextSwitcher)fragView.findViewById(R.id.modelInfo_text_titleText);
 
         setupTextSwitcher();
 
-        cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        //cardRecycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
-        cardRecycler.setAdapter(new ModelInfoAdapter(callback.getCardListnener()));
-        cardRecycler.getAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-            @Override
-            public void onChanged() {
-                super.onChanged();
-                thisFragment.modelInfoView.toggleDrawer(false);
-                thisFragment.cardTypeCheck.setDisplayedCardType();
-            }
-        });
+        ModelInfoAdapter adapter = new ModelInfoAdapter(getContext(), R.layout.item_docs_list, dataAccess.getFiles(), callback.getCardListnener());
+        listView.setAdapter(adapter);
 
-        modelInfoView.setCallback(thisFragment);
+//        cardRecycler.setAdapter(new ModelInfoAdapter(callback.getCardListnener()));
+//        cardRecycler.getAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+//            @Override
+//            public void onChanged() {
+//                super.onChanged();
+//                thisFragment.modelInfoView.toggleDrawer(false);
+//                thisFragment.cardTypeCheck.setDisplayedCardType();
+//            }
+//        });
+
+        modelDrawerView.setCallback(thisFragment);
+
+//        Button button = (Button)fragView.findViewById(R.id.test_toggle_btn);
+//        button.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                modelInfoView.toggleDrawer(false);
+//            }
+//        });
 
         return fragView;
     }
 
     @Override
-    public boolean updateRecycler() {
-        if(thisFragment.cardTypeCheck.isUpdateRequired()) {
-            ((ModelInfoAdapter)thisFragment.cardRecycler.getAdapter()).updateCardData(
-                    valueChange.getEnqueuedModel().getModelName(), dataAccess.getCards(cardTypeCheck.getEnqueued())
-            );
-        } else restoreListeners();
-
-        thisFragment.cardTypeCheck.dropSkipFlag();
-        return cardTypeCheck.isUpdateRequired();
-    }
-
-    @Override
-    public void animateRecyclerUp() {thisFragment.cardRecycler.startAnimation(viewUpAnim);}
-
-    @Override
-    public void animateRecyclerDown() {thisFragment.cardRecycler.startAnimation(viewDownAnim);}
-
-    @Override
-    public void restoreListeners() {
-        manualBtn.setOnClickListener(thisFragment);
-        maintenanceBtn.setOnClickListener(thisFragment);
-        specsBtn.setOnClickListener(thisFragment);
-    }
-
-    @Override
-    public void nullifyListeners() {
-        manualBtn.setOnClickListener(null);
-        maintenanceBtn.setOnClickListener(null);
-        specsBtn.setOnClickListener(null);
+    public void passAnimationValue(int inverseValue) {
+        listView.receiveAnimationValue(inverseValue);
     }
 
     @Override
     public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
         Log.d("FragmentDocuments", "onViewCreated");
         super.onViewCreated(fragmentView, savedInstanceState);
+    }
 
-        restoreListeners();
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        updateContents(valueChange.getDisplayedModel());
     }
 
     @Override
@@ -167,15 +158,29 @@ public class FragmentModelInfo extends FragmentBase
         String propName = event.getPropertyName();
         if(propName != null) {
             if(propName.equals(ValueChangeSupport.PROPERTY_MODEL)) {
-                Model thisModel = (Model)event.getNewValue();
-                thisFragment.cardTypeCheck.raiseSkipFlag();
+                Model model = (Model)event.getNewValue();
+                //thisFragment.cardTypeCheck.raiseSkipFlag();
 
-                thisFragment.modelInfoTitleSwitcher.setText(thisModel.getModelName());
-                thisFragment.modelInfoView.updateModelImage(thisModel.getImgResource());
+                updateContents(model);
 
-                if(thisFragment.emptyModelView.isVisible())
-                    thisFragment.emptyModelView.startAnimation(EmptyModelView.HIDE_ANIM);
+//                if(!thisModel.isEmpty()) {
+//                    thisFragment.modelInfoTitleSwitcher.setText(thisModel.getModelName());
+//                    thisFragment.modelInfoView.updateModelImage(thisModel.getImgResource());
+//
+//                    if(thisFragment.emptyModelView.isVisible())
+//                        thisFragment.emptyModelView.startAnimation(EmptyModelView.HIDE_ANIM);
+//                }
             }
+        }
+    }
+
+    private void updateContents(Model model) {
+        if(!model.isEmpty()) {
+            thisFragment.modelInfoTitleSwitcher.setText(model.getModelName());
+            thisFragment.modelDrawerView.updateModelImage(model.getImgResource());
+
+            if(thisFragment.emptyModelView.isVisible())
+                thisFragment.emptyModelView.startAnimation(EmptyModelView.HIDE_ANIM);
         }
     }
 
@@ -183,15 +188,15 @@ public class FragmentModelInfo extends FragmentBase
     public void onClick(View v) {
         int cardType = -1;
 
-        switch(v.getId()) {
-            case R.id.modelInfo_btn_documentation: cardType = Card.CARD_TYPE_DOC; break;
-            case R.id.modelInfo_btn_maintenance: cardType = Card.CARD_TYPE_MAINT; break;
-            case R.id.modelInfo_btn_specs: cardType = Card.CARD_TYPE_SPECS; break;
-        }
+//        switch(v.getId()) {
+//            case R.id.modelInfo_btn_documentation: cardType = Card.CARD_TYPE_DOC; break;
+//            case R.id.modelInfo_btn_maintenance: cardType = Card.CARD_TYPE_MAINT; break;
+//            case R.id.modelInfo_btn_specs: cardType = Card.CARD_TYPE_SPECS; break;
+//        }
 
-        nullifyListeners();
-        thisFragment.cardTypeCheck.setEnqueued(cardType);
-        thisFragment.modelInfoView.toggleDrawer(cardTypeCheck.isUpdateRequired());
+//        nullifyListeners();
+//        thisFragment.cardTypeCheck.setEnqueued(cardType);
+        thisFragment.modelDrawerView.toggleDrawer(cardTypeCheck.isUpdateRequired());
     }
 
     private void setupTextSwitcher() {

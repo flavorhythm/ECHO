@@ -3,6 +3,7 @@ package com.echo_usa.echo;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.View;
@@ -21,13 +22,16 @@ import java.util.Locale;
 import data.Card;
 import fragment.FragmentBase;
 import fragment.FragmentRouter;
-import fragment.static_fragment.FragmentNav;
 import fragment.static_fragment.FragmentToolbar;
 import util.FragName;
+import util.MetricCalcs;
+import util.NullEnqueuedException;
 
 import static util.FragName.*;
 
 public class MainActivity extends AppCompatActivity implements FragmentBase.Callback, DirectionCheck.DirectionListener {
+
+
     protected static final int GUIDE_REQ_CODE = 10;
 
     private static final int UP = 0;
@@ -52,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
         setContentView(R.layout.activity_main);
 
         valueChange = ((DataAccessApplication)getApplication()).getValueChangeSupport();
+        determineStatusBarHeight();
 
         //From fragment callback
         setSupportActionBar(toolbar);
@@ -66,12 +71,19 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
         directionCheck.setDirectionChangeListener(this);
 
         FragmentRouter.newInstance(MainActivity.this);
-        FragmentRouter.execute();
     }
 
     private void zOrdering() {
         findViewById(R.id.main_appbar).bringToFront();
         findViewById(R.id.main_frag_content).invalidate();
+    }
+
+    private void determineStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) result = getResources().getDimensionPixelSize(resourceId);
+
+        MetricCalcs.setStatusBarHeight(result);
     }
 
     private void setupToolbarToggle(Toolbar toolbar) {
@@ -92,24 +104,39 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
 
                 switch(drawerView.getId()) {
                     case R.id.main_drawer_garage:
-                        boolean isNotSelf = !valueChange.getDisplayedModel().equals(valueChange.getEnqueuedModel());
-                        if(isNotSelf) valueChange.setEnqueuedModel();
+                        try {valueChange.setEnqueuedAsDisplayed();}
+                        catch(NullEnqueuedException e) {e.printStackTrace();}
 
                         break;
                     case R.id.main_drawer_nav:
-                        resetMenuInFragmentNav();
-
-                        FragName fragName = FragmentRouter.getEnqueuedFragName();
-                        if(!fragName.equals(BLANK)) {
-                            Log.v("MainActivity", "FragName enqueued: " + fragName.toString());
-
-                            if(!FragmentRouter.execute()) Snackbar.make(
+                        if(!FragmentRouter.execute()) {
+                            Snackbar.make(
                                     findViewById(R.id.main_drawer_layout),
                                     "Already here!",
                                     Snackbar.LENGTH_SHORT
                             ).show();
                         }
+//                        try {
+//                            if(!FragmentRouter.execute()) {
+//                                Snackbar.make(
+//                                        findViewById(R.id.main_drawer_layout),
+//                                        "Already here!",
+//                                        Snackbar.LENGTH_SHORT
+//                                ).show();
+//                            }
 
+//                            if(!enqueued.equals(BLANK)) {
+//                                Log.v("MainActivity", "FragName enqueued: " + enqueued.toString());
+//
+//                                if(!FragmentRouter.execute()) Snackbar.make(
+//                                        findViewById(R.id.main_drawer_layout),
+//                                        "Already here!",
+//                                        Snackbar.LENGTH_SHORT
+//                                ).show();
+//                            }
+//                        } catch(NullEnqueuedException e) {
+//                            e.printStackTrace();
+//                        }
                         break;
                     default: break;
                 }
@@ -129,16 +156,32 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
 
     @Override
     public void onBackPressed() {
-        if (drawer.isDrawerOpen(GravityCompat.START)) drawer.closeDrawer(GravityCompat.START);
-        else if (drawer.isDrawerOpen(GravityCompat.END)) drawer.closeDrawer(GravityCompat.END);
-        else if(!FragmentRouter.isThisFragDisplayed(HOME)) {
-            FragmentRouter.setEnqueuedFragName(HOME);
-            FragmentRouter.execute();
+        if(!closeAllDrawers()) {
+            popBackEntireStack();
+
+            if(!FragmentRouter.isThisFragDisplayed(HOME)) {
+                FragmentRouter.setEnqueuedFragName(HOME);
+                FragmentRouter.execute();
+            } else super.onBackPressed();
         }
-        else {
-            FragmentRouter.setDisplayedFragName(BLANK);
-            super.onBackPressed();
+    }
+
+    private void popBackEntireStack() {
+        FragmentManager fm = getSupportFragmentManager();
+
+        for(int i = 0; i < fm.getBackStackEntryCount(); i++) {
+            fm.popBackStack();
         }
+    }
+
+    private boolean closeAllDrawers() {
+        if(drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+            return true;
+        } else if(drawer.isDrawerOpen(GravityCompat.END)) {
+            drawer.closeDrawer(GravityCompat.END);
+            return true;
+        } else return false;
     }
 
     @Override
@@ -172,10 +215,6 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
                     break;
             }
         }
-    }
-
-    private void resetMenuInFragmentNav() {
-        ((FragmentNav)getSupportFragmentManager().findFragmentById(R.id.main_drawer_nav)).resetMenuInSettingsArrow();
     }
 
     @Override

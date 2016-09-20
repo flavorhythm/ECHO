@@ -26,7 +26,7 @@ import widget.SettingsArrow;
 public class FragmentNav extends FragmentBase
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private SettingsArrow settingsArrow;
+    //private SettingsArrow settingsArrow;
 
     @Override
     public void onAttach(Context context) {
@@ -57,8 +57,8 @@ public class FragmentNav extends FragmentBase
                 MetricCalcs.getDrawerHeaderHeight(MetricCalcs.getActionBarSize(getContext()))
         ));
 
-        settingsArrow = ((SettingsArrow)leftDrawerHeader.findViewById(R.id.drawer_button_settings));
-        settingsArrow.setDrawerMenu(navigationView.getMenu());
+//        settingsArrow = ((SettingsArrow)leftDrawerHeader.findViewById(R.id.drawer_button_settings));
+//        settingsArrow.setDrawerMenu(navigationView.getMenu());
 
         return customView;
     }
@@ -70,8 +70,8 @@ public class FragmentNav extends FragmentBase
 
     @Override
     public boolean onNavigationItemSelected(MenuItem leftDrawerMenuItem) {
-        Log.d("FragmentNav", "item selected: " + leftDrawerMenuItem.toString());
-        Log.d("FragmentNav", "is callback valid: " + callback.toString());
+//        Log.d("FragmentNav", "item selected: " + leftDrawerMenuItem.toString());
+//        Log.d("FragmentNav", "is callback valid: " + callback.toString());
 
         FragName fragToDisplay = FragName.getNameById(leftDrawerMenuItem.getItemId());
         if(fragToDisplay != null) {
@@ -83,7 +83,7 @@ public class FragmentNav extends FragmentBase
         return true;
     }
 
-    public void resetMenuInSettingsArrow() {
-        settingsArrow.resetMenu();
-    }
+//    public void resetMenuInSettingsArrow() {
+//        //settingsArrow.resetMenu();
+//    }
 }

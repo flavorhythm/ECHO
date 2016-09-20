@@ -128,7 +128,7 @@ public class FragmentGarage extends FragmentModelInfo implements ObservableScrol
 
                     String modelName = thisModel.getModelName();
                     Log.d("FragmentGarage", "onItemClick: " + modelName + " selected");
-                    getValueChange().enqueueModelChange(thisModel);
+                    getValueChange().setEnqueuedModel(thisModel);
 //                callback.setModelName(modelName);
                     callback.closeDrawer(GravityCompat.END);
                 }
