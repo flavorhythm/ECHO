@@ -18,7 +18,7 @@
         app:elevation="0dp">
         <fragment
             android:name="fragment.static_fragment.FragmentToolbar"
-            android:id="@+id/ads_toolbar"
+            android:id="@+id/cards_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:layout="@layout/frag_toolbar"/>

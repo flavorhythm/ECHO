@@ -64,9 +64,7 @@ public class ModelDrawerView extends View {
     int onBtmShadowHeight = MetricCalcs.dpToPixels(ON_BTM_IMG_SHDW_SIZE);
 
     int imgLeft = (screenWidth - imageWidth) / 2;
-
     int imgTop = screenHeight - imageHeight;
-
     int onBtmImgShadowTop = screenHeight;
 
     private Rect whiteBgBounds;
@@ -83,8 +81,8 @@ public class ModelDrawerView extends View {
 
     private GestureDetectorCompat detector;
 
-    private int translateY = 0;
     private int translateX = 0;
+    private int translateY = 0;
     private int alpha = 255;
 
     //TODO: view function order8
@@ -211,6 +209,7 @@ public class ModelDrawerView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if(event.getActionMasked() == MotionEvent.ACTION_UP) snapBack((double)translateY, (double)imageHeight);
         return this.detector.onTouchEvent(event);
     }
 
@@ -278,6 +277,21 @@ public class ModelDrawerView extends View {
     private void closeDrawer() {
         Animator localAnimator = closeDrawer.clone();
         localAnimator.start();
+    }
+
+    private void snapBack(double posY, double maxY) {
+        Log.v("snap", "snap back");
+        double percentage = posY / maxY;
+
+        if(percentage > 0.5) {
+            ValueAnimator localAnimator = openDrawer.clone();
+            localAnimator.setIntValues(translateY, MetricCalcs.dpToPixels(MAX_TRANS_Y));
+            localAnimator.start();
+        } else {
+            ValueAnimator localAnimator = closeDrawer.clone();
+            localAnimator.setIntValues(translateY, 0);
+            localAnimator.start();
+        }
     }
 
     private void toggleDrawer() {

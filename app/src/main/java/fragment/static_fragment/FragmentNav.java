@@ -18,6 +18,7 @@ import fragment.FragmentBase;
 import fragment.FragmentRouter;
 import util.FragName;
 import util.MetricCalcs;
+import util.NullEnqueuedException;
 import widget.SettingsArrow;
 
 /**
@@ -74,10 +75,7 @@ public class FragmentNav extends FragmentBase
 //        Log.d("FragmentNav", "is callback valid: " + callback.toString());
 
         FragName fragToDisplay = FragName.getNameById(leftDrawerMenuItem.getItemId());
-        if(fragToDisplay != null) {
-            if(FragmentRouter.isInstantiated()) FragmentRouter.setEnqueuedFragName(fragToDisplay);
-            //TODO: Error message here?
-        }
+        if(FragmentRouter.isInstantiated()) FragmentRouter.setEnqueuedFragName(fragToDisplay);
 
         callback.closeDrawer(GravityCompat.START);
         return true;

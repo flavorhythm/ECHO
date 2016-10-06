@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,20 +21,12 @@ import util.MetricCalcs;
 /**
  * Created by ZYuki on 7/13/2016.
  */
+
 public class FragmentGuide extends FragmentBase {
+    private static final int GUIDE_SCROLL_LIMIT = 0;
     public static FragmentGuide thisFragment;
 
     private RecyclerView recycler;
-
-    public static final int ERROR = -1;
-
-    public static final int GETTING_STARTED = 0;
-    public static final int EQUIPMENT_SAFETY = 1;
-    public static final int CHAIN_SAW = 2;
-    public static final int BLOWER = 3;
-    public static final int TRIMMER = 4;
-
-    private int scrollY = 0;
 
     public static FragmentGuide newInstance() {
         if(thisFragment == null) thisFragment = new FragmentGuide();
@@ -44,6 +37,8 @@ public class FragmentGuide extends FragmentBase {
     public void onAttach(Context context) {
         super.onAttach(context);
         Log.v(this.toString(), "onAttach");
+
+
     }
 
     @Override
@@ -61,17 +56,8 @@ public class FragmentGuide extends FragmentBase {
 
         recycler = (RecyclerView)customView.findViewById(R.id.guide_recycler);
         recycler.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-        recycler.setAdapter(new GuideAdapter(getActivity(), dataAccess.getCards(Card.CARD_TYPE_GUIDE), callback.getCardListnener()));
-
-        recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-
-                scrollY += dy;
-                callback.scrollToolbar(scrollY, MetricCalcs.getActionBarSize(getContext()), 0);
-            }
-        });
+        recycler.setAdapter(new GuideAdapter(getContext(), dataAccess.getCards(Card.CARD_TYPE_GUIDE), callback.getCardListnener()));
+        recycler.addOnScrollListener(getListenerWithThreshold(0, GUIDE_SCROLL_LIMIT));
 
         return customView;
     }

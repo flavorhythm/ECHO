@@ -23,16 +23,21 @@ import java.util.List;
 import adapter.HomeAdapter;
 import data.Card;
 import fragment.FragmentBase;
-import fragment.FragmentRouter;
-import fragment.static_fragment.FragmentToolbar;
 import util.MetricCalcs;
 
 /**
  * Created by zyuki on 6/3/2016.
  */
 public class FragmentHome extends FragmentBase implements ObservableScrollViewCallbacks {
+    private static final int HOME_SCROLL_THRESHOLD
+            = MetricCalcs.getHeightForRatio(
+                    MetricCalcs.WIDTH_RATIO_16,
+                    MetricCalcs.HEIGHT_RATIO_9
+            );
     private static FragmentHome thisFragment;
+    private static int currentScroll = 0;
 
+    private ObservableRecyclerView cardsRecycler;
     private View mImageView;
     private View mOverlayView;
     private View mRecyclerViewBackground;
@@ -49,17 +54,14 @@ public class FragmentHome extends FragmentBase implements ObservableScrollViewCa
 
         Log.v(this.toString(), "onAttach");
 
-        flexibleSpaceImageHeight = MetricCalcs.getHeightForRatio(
-                MetricCalcs.WIDTH_RATIO_16,
-                MetricCalcs.HEIGHT_RATIO_9
-        );
+        flexibleSpaceImageHeight = HOME_SCROLL_THRESHOLD;
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        FragmentToolbar.setGarageBtnVisibility(false);
+        Log.v(this.toString(), "onResume");
     }
 
     @Override
@@ -67,8 +69,6 @@ public class FragmentHome extends FragmentBase implements ObservableScrollViewCa
         super.onCreate(savedInstanceState);
 
         Log.v(this.toString(), "onCreate");
-//
-//        this.fragName = "home";
     }
 
     @Override
@@ -76,10 +76,11 @@ public class FragmentHome extends FragmentBase implements ObservableScrollViewCa
         int layoutRes = R.layout.frag_home;
         View fragView = inflater.inflate(layoutRes, container, false);
 
-        ObservableRecyclerView cardsRecycler = (ObservableRecyclerView)fragView.findViewById(R.id.home_recycler);
+        cardsRecycler = (ObservableRecyclerView)fragView.findViewById(R.id.home_recycler);
 
         cardsRecycler.setLayoutManager(new LinearLayoutManager(getActivity()));
         cardsRecycler.setHasFixedSize(false); //may need to change in future
+        cardsRecycler.addOnScrollListener(getListenerWithThreshold(currentScroll, HOME_SCROLL_THRESHOLD));
 
         final View headerView = LayoutInflater.from(getActivity())
                 .inflate(R.layout.header_base, container, false);
@@ -120,13 +121,12 @@ public class FragmentHome extends FragmentBase implements ObservableScrollViewCa
 
     @Override
     public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
+        currentScroll = scrollY;
         // Translate overlay and cardImage
 
         int mActionBarSize = MetricCalcs.getActionBarSize(getContext());
         float flexibleRange = flexibleSpaceImageHeight - mActionBarSize;
         int minOverlayTransitionY = mActionBarSize - mOverlayView.getHeight();
-
-        callback.scrollToolbar(scrollY, mActionBarSize, (int)flexibleRange);
 
         ViewHelper.setTranslationY(mOverlayView, ScrollUtils.getFloat(-scrollY, minOverlayTransitionY, 0));
         ViewHelper.setTranslationY(mImageView, ScrollUtils.getFloat(-scrollY / 2, minOverlayTransitionY, 0));
@@ -136,19 +136,7 @@ public class FragmentHome extends FragmentBase implements ObservableScrollViewCa
 
         // Change alpha of overlay
         ViewHelper.setAlpha(mOverlayView, ScrollUtils.getFloat((float) scrollY / flexibleRange, 0, 1));
-
-//        Log.d("scroll", "Still scrolling");
-        if(FragmentRouter.isInstantiated()) FragmentRouter.actionBarFadeScroll(scrollY, mActionBarSize, flexibleRange);
     }
-
-//    private int convertValue(int scrollY, float rangeMin, float rangeMax) {
-//        final int noFill = 0;
-//        final int fullFill = 255;
-//
-//        if(rangeMin == ScrollUtils.getFloat(scrollY, rangeMin, rangeMax)) return noFill;
-//        if(rangeMax == ScrollUtils.getFloat(scrollY, rangeMin, rangeMax)) return fullFill;
-//        else return (int)(scrollY * (255 / (rangeMax - rangeMin)));
-//    }
 
     @Override
     public final void onDownMotionEvent() {}

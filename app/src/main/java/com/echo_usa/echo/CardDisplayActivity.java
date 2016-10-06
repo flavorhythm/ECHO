@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import fragment.FragmentBase;
+import fragment.static_fragment.FragmentToolbar;
 
 public class CardDisplayActivity extends AppCompatActivity implements FragmentBase.Callback {
     private Toolbar toolbar;
@@ -28,14 +29,29 @@ public class CardDisplayActivity extends AppCompatActivity implements FragmentBa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_card_display);
 
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeAsUpIndicator(
-                ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.ic_vector_clear)
-        );
-        getSupportActionBar().setBackgroundDrawable(
-                ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.app_bar_solid)
-        );
+        Toolbar toolbar = getToolbarFromFragment();
+
+        if(toolbar != null) {
+            setSupportActionBar(toolbar);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeAsUpIndicator(
+                    ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.ic_vector_clear)
+            );
+            getSupportActionBar().setBackgroundDrawable(
+                    ContextCompat.getDrawable(CardDisplayActivity.this, R.drawable.app_bar_solid)
+            );
+        }
+    }
+
+    private Toolbar getToolbarFromFragment() {
+        try {
+            return ((FragmentToolbar)getSupportFragmentManager().findFragmentById(R.id.cards_toolbar))
+                    .getToolbar();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override

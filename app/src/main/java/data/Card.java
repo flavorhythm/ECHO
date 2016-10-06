@@ -13,6 +13,7 @@ public class Card {
     public static final int CARD_SIZE_SLIM = 0;
     public static final int CARD_SIZE_SMALL = 1;
     public static final int CARD_SIZE_LARGE = 2;
+    public static final int CARD_DIVIDER = 3;
 
     public static final int CARD_TYPE_PLACEHOLDER = 99;
 
@@ -22,7 +23,11 @@ public class Card {
     int drawableRes;
     String cardTitle, cardSubtitle;
 
-    public Card() {}
+    public Card(int cardType, String title, String subtitle) {
+        this.cardType = cardType;
+        this.cardTitle = title;
+        this.cardSubtitle = subtitle;
+    }
 
     public Card(int cardType, int cardSize, int drawableRes, String cardTitle) {
         this.cardType = cardType;

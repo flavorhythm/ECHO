@@ -13,14 +13,14 @@ import util.NullEnqueuedException;
 public class ValueChangeSupport {
     /**
      * VARIABLES
-     */
+     * */
     public static final String PROPERTY_MODEL = "ModelNameChange";
     private PropertyChangeSupport mPropertySupport;
     private Model mDisplayedModel, mEnqueuedModel;
 
     /**
      * CONSTRUCTORS
-     */
+     * */
     public ValueChangeSupport() {
         mPropertySupport = new PropertyChangeSupport(this);
         mDisplayedModel = new Model(Model.EMPTY_FLAG); //Empty set to true
@@ -29,7 +29,7 @@ public class ValueChangeSupport {
 
     /**
      * PUBLICS
-     */
+     * */
     /** Ties together the class that requires notification when new model is selected and this class via a listener object */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         mPropertySupport.addPropertyChangeListener(listener);
@@ -50,7 +50,7 @@ public class ValueChangeSupport {
 
     /**
      * PRIVATES
-     */
+     * */
     /** Sets displayed model */
     private void setDisplayedModel(Model newModel) {mDisplayedModel = newModel;}
 }

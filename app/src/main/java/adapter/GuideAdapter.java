@@ -1,6 +1,7 @@
 package adapter;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -36,8 +37,8 @@ public class GuideAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private static final int CONTENT_DIVIDER_1_POS = 0;
     private static final int CONTENT_DIVIDER_2_POS = 4;
 
-    public GuideAdapter(Activity activity, List<Card> cardList, View.OnClickListener listener) {
-        this.resources = activity.getResources();
+    public GuideAdapter(Context context, List<Card> cardList, View.OnClickListener listener) {
+        this.resources = context.getResources();
         this.cardList = cardList;
         this.listener = listener;
     }

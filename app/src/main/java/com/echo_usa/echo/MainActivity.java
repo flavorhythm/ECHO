@@ -2,10 +2,10 @@ package com.echo_usa.echo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -15,37 +15,20 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
-
-import java.util.Locale;
-
 import data.Card;
 import fragment.FragmentBase;
 import fragment.FragmentRouter;
 import fragment.static_fragment.FragmentToolbar;
-import util.FragName;
 import util.MetricCalcs;
 import util.NullEnqueuedException;
 
 import static util.FragName.*;
 
-public class MainActivity extends AppCompatActivity implements FragmentBase.Callback, DirectionCheck.DirectionListener {
-
-
+public class MainActivity extends AppCompatActivity implements FragmentBase.Callback {
     protected static final int GUIDE_REQ_CODE = 10;
 
-    private static final int UP = 0;
-    private static final int DOWN = 1;
-
-    private DrawerLayout drawer;
-    private Toolbar toolbar;
-
     private static ValueChangeSupport valueChange;
-
-    private int prevScrollY = 0;
-    private int revertPos = 0;
-
-    private DirectionCheck directionCheck;
+    private DrawerLayout drawer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,24 +41,37 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
         valueChange = ((DataAccessApplication)getApplication()).getValueChangeSupport();
         determineStatusBarHeight();
 
-        //From fragment callback
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setElevation(0);
-
         drawer = (DrawerLayout)findViewById(R.id.main_drawer_layout);
-        setupToolbarToggle(toolbar);
+
+        Toolbar toolbar = getToolbarFromFragment();
+        if(toolbar != null) {
+            setSupportActionBar(toolbar);
+            setupToolbarToggle(toolbar);
+            getSupportActionBar().setElevation(0);
+        }
 
         zOrdering();
-
-        directionCheck = new DirectionCheck();
-        directionCheck.setDirectionChangeListener(this);
-
         FragmentRouter.newInstance(MainActivity.this);
     }
 
+    private Toolbar getToolbarFromFragment() {
+        try {
+            return ((FragmentToolbar)getSupportFragmentManager().findFragmentById(R.id.main_toolbar))
+                    .getToolbar();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     private void zOrdering() {
-        findViewById(R.id.main_appbar).bringToFront();
-        findViewById(R.id.main_frag_content).invalidate();
+        try {
+            findViewById(R.id.main_appbar).bringToFront();
+            findViewById(R.id.main_frag_content).invalidate();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
     }
 
     private void determineStatusBarHeight() {
@@ -109,34 +105,7 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
 
                         break;
                     case R.id.main_drawer_nav:
-                        if(!FragmentRouter.execute()) {
-                            Snackbar.make(
-                                    findViewById(R.id.main_drawer_layout),
-                                    "Already here!",
-                                    Snackbar.LENGTH_SHORT
-                            ).show();
-                        }
-//                        try {
-//                            if(!FragmentRouter.execute()) {
-//                                Snackbar.make(
-//                                        findViewById(R.id.main_drawer_layout),
-//                                        "Already here!",
-//                                        Snackbar.LENGTH_SHORT
-//                                ).show();
-//                            }
-
-//                            if(!enqueued.equals(BLANK)) {
-//                                Log.v("MainActivity", "FragName enqueued: " + enqueued.toString());
-//
-//                                if(!FragmentRouter.execute()) Snackbar.make(
-//                                        findViewById(R.id.main_drawer_layout),
-//                                        "Already here!",
-//                                        Snackbar.LENGTH_SHORT
-//                                ).show();
-//                            }
-//                        } catch(NullEnqueuedException e) {
-//                            e.printStackTrace();
-//                        }
+                        FragmentRouter.execute();
                         break;
                     default: break;
                 }
@@ -159,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
         if(!closeAllDrawers()) {
             popBackEntireStack();
 
-            if(!FragmentRouter.isThisFragDisplayed(HOME)) {
+            if(!HOME.equals(FragmentRouter.getDisplayedFragName())) {
                 FragmentRouter.setEnqueuedFragName(HOME);
                 FragmentRouter.execute();
             } else super.onBackPressed();
@@ -186,9 +155,8 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
 
     @Override
     public boolean onCreateOptionsMenu(Menu rightDrawerToggle) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, rightDrawerToggle);
-        FragmentToolbar.setGarageBtnVisibility(false);
+        //FragmentToolbar.setGarageBtnVisibility(false);
         return true;
     }
 
@@ -206,12 +174,11 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-//        FragmentRouter.newInstance(MainActivity.this);
 
         if(resultCode == RESULT_OK) {
             switch(requestCode) {
                 case GUIDE_REQ_CODE:
-                    FragmentRouter.execute();
+                    //FragmentRouter.execute();
                     break;
             }
         }
@@ -237,53 +204,44 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
     }
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return super.onTouchEvent(event);
+    }
+
+    @Override
     public void scrollToolbar(int scrollY, int actionBarSize, int vertThreshold) {
-        View appbar = findViewById(R.id.main_appbar);
-
-        int scrollVal = -1;
-        if(scrollY < vertThreshold) scrollVal = 0;
-        else if(scrollY >= vertThreshold) {
-            int direction = getScrollDirection(scrollY);
-            directionCheck.directionChanged(direction, actionBarSize, toolbar.getScrollY());
-
-            switch(direction) {
-                case UP:
-                    scrollVal = actionBarSize - (int)ScrollUtils.getFloat((float)(revertPos - scrollY), 0, actionBarSize);
-                    break;
-                case DOWN:
-                    scrollVal = (int)ScrollUtils.getFloat((float)(scrollY - revertPos), 0, actionBarSize);
-                    break;
-            }
-        }
-
-        if(appbar != null && scrollVal != -1) {
-            toolbar.setScrollY(scrollVal);
-            appbar.setScrollY(scrollVal);
-            appbar.getLayoutParams().height = actionBarSize - scrollVal;
-            appbar.requestLayout();
-        }
-
-        prevScrollY = scrollY;
-    }
-
-    private int getScrollDirection(int scrollY) {
-        if(scrollY > prevScrollY) return DOWN;
-        else return UP;
+//        View appbar = findViewById(R.id.main_appbar);
+//
+//        int scrollVal = -1;
+//        if(scrollY <= vertThreshold) scrollVal = 0;
+//        else if(scrollY > vertThreshold) {
+//            int direction = getScrollDirection(scrollY);
+//            directionCheck.directionChanged(direction, actionBarSize, toolbar.getScrollY());
+//
+//            switch(direction) {
+//                case UP:
+//                    scrollVal = actionBarSize - (int)ScrollUtils.getFloat((float)(revertPos - scrollY), 0, actionBarSize);
+//                    break;
+//                case DOWN:
+//                    scrollVal = (int)ScrollUtils.getFloat((float)(scrollY - revertPos), 0, actionBarSize);
+//                    break;
+//            }
+//        }
+//
+//        if(appbar != null && scrollVal != -1) {
+//            toolbar.setScrollY(scrollVal);
+//            appbar.setScrollY(scrollVal);
+//            appbar.getLayoutParams().height = actionBarSize - scrollVal;
+//            appbar.requestLayout();
+//        }
+//
+//        prevScrollY = scrollY;
     }
 
     @Override
-    public void onDirectionChange(int direction, int actionBarSize, int toolbarScroll) {
-        Log.d(this.toString(), String.format(Locale.US, "direction: %d revertPos: %d prevScroll: %d toolbarScroll: %d", direction, revertPos, prevScrollY, toolbarScroll));
-        if(DirectionCheck.prevDirection != direction) {
-            if(direction == UP) revertPos = prevScrollY + actionBarSize - toolbarScroll;
-            if(direction == DOWN) revertPos = prevScrollY - toolbarScroll;
-
-            DirectionCheck.prevDirection = direction;
-        }
+    public void setToolbar(Toolbar toolbar) {
+//        this.toolbar = toolbar;
     }
-
-    @Override
-    public void setToolbar(Toolbar toolbar) {this.toolbar = toolbar;}
 
     @Override
     public void closeDrawer(int gravity) {
@@ -293,27 +251,9 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
 
     @Override
     public void setGarageBtnVisibility(boolean visibility) {
-        toolbar.getMenu().setGroupVisible(R.id.menu_garage_group, visibility);
         drawer.setDrawerLockMode(
                 visibility ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
                 GravityCompat.END
         );
-    }
-}
-
-class DirectionCheck {
-    DirectionListener listener;
-    static int prevDirection = -1;
-
-    void setDirectionChangeListener(DirectionListener listener) {
-        this.listener = listener;
-    }
-
-    void directionChanged(int direction, int actionBarSize, int toolbarScroll) {
-        if(listener != null) listener.onDirectionChange(direction, actionBarSize, toolbarScroll);
-    }
-
-    interface DirectionListener {
-        void onDirectionChange(int direction, int actionBarSize, int toolbarScroll);
     }
 }

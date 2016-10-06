@@ -23,7 +23,7 @@ public class ImageLoaderTask extends AsyncTask<Integer, Void, Bitmap> {
     private Callback callback;
 
     private final WeakReference<ImageView> imageViewRef;
-    private int resId;
+    private int resId = 0;
 
     public ImageLoaderTask(RecyclerView.Adapter<RecyclerView.ViewHolder> adapter, ImageView imageView) {
         imageViewRef = new WeakReference<>(imageView);
@@ -31,37 +31,28 @@ public class ImageLoaderTask extends AsyncTask<Integer, Void, Bitmap> {
         callback = (Callback)adapter;
     }
 
-    public void setResId(int resId) {
-        this.resId = resId;
-    }
-
-    public int getResId() {
-        return resId;
-    }
+    public void setResId(int resId) {this.resId = resId;}
+    public int getResId() {return resId;}
 
     @Override
     protected Bitmap doInBackground(Integer... params) {
         setResId(params[0]);
 
         Bitmap bitmap = callback.getFromCache(String.valueOf(getResId()));
-        if(bitmap != null) {
-            return bitmap;
-        } else {
-            //bitmap = BitmapFactory.decodeResource(resources, resId);
+
+        if(bitmap == null) {
             bitmap = decodeBitmapFromRes(getResId());
             callback.addToCache(String.valueOf(getResId()), bitmap);
-
-            return bitmap;
         }
+
+        return bitmap;
     }
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
-        if (isCancelled()) {
-            bitmap = null;
-        }
+        if(isCancelled()) bitmap = null;
 
-        if (imageViewRef != null && bitmap != null) {
+        if(imageViewRef.get() != null && bitmap != null) {
             final ImageView imageView = imageViewRef.get();
             final ImageLoaderTask task = callback.getTaskFromAsync(imageView);
 

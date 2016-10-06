@@ -21,11 +21,11 @@
 
     <!-- ACTION BAR STYLES -->
     <style name="MyActionBar" parent="@style/Widget.AppCompat.ActionBar">
-        <item name="android:background">@drawable/app_bar_transition</item>
+        <item name="android:background">@null</item>
         <item name="android:windowActionBarOverlay">true</item>
 
         <!-- Support library compatibility -->
-        <item name="background">@drawable/app_bar_transition</item>
+        <item name="background">@null</item>
         <item name="windowActionBarOverlay">true</item>
     </style>
 
@@ -39,6 +39,7 @@
 
     <style name="MyToolBar">
         <item name="titleTextColor">#FFFFFF</item>
+        <item name="android:background">@drawable/app_bar_solid</item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

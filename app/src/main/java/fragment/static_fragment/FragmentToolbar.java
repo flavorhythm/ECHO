@@ -1,5 +1,6 @@
 package fragment.static_fragment;
 
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
@@ -7,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.echo_usa.echo.MainActivity;
 import com.echo_usa.echo.R;
 
 import fragment.FragmentBase;
@@ -17,7 +19,7 @@ import fragment.FragmentBase;
 public class FragmentToolbar extends FragmentBase {
     private static FragmentToolbar thisFragment;
 
-    private static Toolbar toolbar;
+    //private static Toolbar toolbar;
 
     public static FragmentToolbar newInstance() {
         if(thisFragment == null) thisFragment = new FragmentToolbar();
@@ -41,13 +43,14 @@ public class FragmentToolbar extends FragmentBase {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        toolbar = (Toolbar)view;
+        Toolbar toolbar = (Toolbar)view;
 
-        callback.setToolbar(toolbar);
+        setToolbar(toolbar);
     }
 
     public static void setGarageBtnVisibility(boolean visibility) {
         //TODO: make fade
-        callback.setGarageBtnVisibility(visibility);
+        //getMenu().setGroupVisible(R.id.menu_garage_group, visibility);
+        //callback.setGarageBtnVisibility(visibility);
     }
 }
