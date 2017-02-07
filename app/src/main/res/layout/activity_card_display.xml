@@ -11,16 +11,20 @@
         <!--android:id="@+id/empty"-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="match_parent" />-->
+    <!--<fragment-->
+        <!--android:name="fragment.static_fragment.FragmentToolbar"-->
+        <!--android:id="@+id/cards_toolbar"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--tools:layout="@layout/toolbar_bg"/>-->
     <android.support.design.widget.AppBarLayout
-        android:id="@+id/guide_appbar"
+        android:id="@+id/card_display_appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:elevation="0dp">
-        <fragment
-            android:name="fragment.static_fragment.FragmentToolbar"
-            android:id="@+id/cards_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:layout="@layout/frag_toolbar"/>
     </android.support.design.widget.AppBarLayout>
+    <TextView
+        android:id="@+id/card_display_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </android.support.design.widget.CoordinatorLayout>

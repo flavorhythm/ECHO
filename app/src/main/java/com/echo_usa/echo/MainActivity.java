@@ -1,11 +1,10 @@
 package com.echo_usa.echo;
 
-import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatDelegate;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -15,20 +14,30 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import data.Card;
-import fragment.FragmentBase;
+import data.card_content.CardCat;
+import data.card_content.CardContent;
+import data.card_content.CardInfo;
+import data.frag_list.FragListItem;
+//import data.card_content.CardCat;
+import data.navigation.Locator;
+import data.navigation.Model;
+import data.navigation.NavItem;
+import fragment.FragmentModelDocs;
+import fragment.FragmentNavEnd;
 import fragment.FragmentRouter;
-import fragment.static_fragment.FragmentToolbar;
-import util.MetricCalcs;
-import util.NullEnqueuedException;
+import util.FragSpec;
+import util.MetricCalc;
+import widget.EchoSnackbar;
+import widget.EchoToolbar;
 
-import static util.FragName.*;
+import static util.FragSpec.*;
 
-public class MainActivity extends AppCompatActivity implements FragmentBase.Callback {
-    protected static final int GUIDE_REQ_CODE = 10;
+public class MainActivity extends AppCompatActivity implements EchoToolbar.Callback, AdapterCallbacks {
 
-    private static ValueChangeSupport valueChange;
-    private DrawerLayout drawer;
+    private DrawerLayout mDrawer;
+    private EchoSnackbar mSnackbar;
+
+    private FragDataHolder mDataHolder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,125 +47,90 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        valueChange = ((DataAccessApplication)getApplication()).getValueChangeSupport();
-        determineStatusBarHeight();
+        mDataHolder = new FragDataHolder();
 
-        drawer = (DrawerLayout)findViewById(R.id.main_drawer_layout);
+        assessStatusBarHeight(getResources());
 
-        Toolbar toolbar = getToolbarFromFragment();
+        mDrawer = (DrawerLayout)findViewById(R.id.main_drawer_layout);
+        mSnackbar = (EchoSnackbar)findViewById(R.id.main_snackbar);
+
+        Toolbar toolbar = getToolbar();
         if(toolbar != null) {
             setSupportActionBar(toolbar);
             setupToolbarToggle(toolbar);
-            getSupportActionBar().setElevation(0);
         }
 
-        zOrdering();
         FragmentRouter.newInstance(MainActivity.this);
-    }
-
-    private Toolbar getToolbarFromFragment() {
-        try {
-            return ((FragmentToolbar)getSupportFragmentManager().findFragmentById(R.id.main_toolbar))
-                    .getToolbar();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    private void zOrdering() {
-        try {
-            findViewById(R.id.main_appbar).bringToFront();
-            findViewById(R.id.main_frag_content).invalidate();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void determineStatusBarHeight() {
-        int result = 0;
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) result = getResources().getDimensionPixelSize(resourceId);
-
-        MetricCalcs.setStatusBarHeight(result);
     }
 
     private void setupToolbarToggle(Toolbar toolbar) {
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+                this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             @Override
-            public void onDrawerOpened(View drawerView) {
-                if(drawerView.equals(findViewById(R.id.main_drawer_nav))) {
-                    super.onDrawerOpened(drawerView);
+            public void onDrawerOpened(View view) {
+                if(view.equals(findViewById(R.id.main_nav_start))) {
+                    super.onDrawerOpened(view);
                 }
             }
 
             @Override
-            public void onDrawerClosed(View drawerView) {
-                if(drawerView.equals(findViewById(R.id.main_drawer_nav))) {
-                    super.onDrawerClosed(drawerView);
-                }
+            public void onDrawerClosed(View view) {
+                if(view.equals(findViewById(R.id.main_nav_start))) {super.onDrawerClosed(view);}
 
-                switch(drawerView.getId()) {
-                    case R.id.main_drawer_garage:
-                        try {valueChange.setEnqueuedAsDisplayed();}
-                        catch(NullEnqueuedException e) {e.printStackTrace();}
-
+                switch(view.getId()) {
+                    case R.id.main_nav_end:
+                        final int res = R.id.main_frag_content;
+                        final Fragment f = getSupportFragmentManager().findFragmentById(res);
+                        onNavEndItemClicked(f);
                         break;
-                    case R.id.main_drawer_nav:
-                        FragmentRouter.execute();
-                        break;
-                    default: break;
+                    case R.id.main_nav_start:
+                        FragmentRouter.execute(MainActivity.this);
                 }
             }
 
             @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
-                if(drawerView.equals(findViewById(R.id.main_drawer_nav))) {
-                    super.onDrawerSlide(drawerView, slideOffset);
+            public void onDrawerSlide(View view, float slideOffset) {
+                if(view.equals(findViewById(R.id.main_nav_start))) {
+                    super.onDrawerSlide(view, slideOffset);
                 }
             }
         };
 
-        drawer.addDrawerListener(toggle);
+        mDrawer.addDrawerListener(toggle);
         toggle.syncState();
     }
 
     @Override
     public void onBackPressed() {
         if(!closeAllDrawers()) {
-            popBackEntireStack();
-
-            if(!HOME.equals(FragmentRouter.getDisplayedFragName())) {
-                FragmentRouter.setEnqueuedFragName(HOME);
-                FragmentRouter.execute();
-            } else super.onBackPressed();
+            if(!FragmentRouter.popStackOnBackPressed()) super.onBackPressed();
         }
     }
 
-    private void popBackEntireStack() {
-        FragmentManager fm = getSupportFragmentManager();
-
-        for(int i = 0; i < fm.getBackStackEntryCount(); i++) {
-            fm.popBackStack();
-        }
+    public boolean updateNavEndContent(@NonNull FragSpec fn) {
+        Fragment f = getSupportFragmentManager().findFragmentById(R.id.main_nav_end);
+        return ((FragmentNavEnd)f).updateContent(fn);
     }
 
     private boolean closeAllDrawers() {
-        if(drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+        if(mDrawer.isDrawerOpen(GravityCompat.START)) {
+            mDrawer.closeDrawer(GravityCompat.START);
             return true;
-        } else if(drawer.isDrawerOpen(GravityCompat.END)) {
-            drawer.closeDrawer(GravityCompat.END);
+        } else if(mDrawer.isDrawerOpen(GravityCompat.END)) {
+            mDrawer.closeDrawer(GravityCompat.END);
             return true;
         } else return false;
     }
 
     @Override
+    public void lockEndDrawer(boolean toLock) {
+        int mode = toLock ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED;
+        mDrawer.setDrawerLockMode(mode, GravityCompat.END);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu rightDrawerToggle) {
         getMenuInflater().inflate(R.menu.menu_main, rightDrawerToggle);
-        //FragmentToolbar.setGarageBtnVisibility(false);
         return true;
     }
 
@@ -164,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case R.id.menu_garage:
-                drawer.openDrawer(GravityCompat.END);
+                mDrawer.openDrawer(GravityCompat.END);
                 break;
         }
 
@@ -172,88 +146,114 @@ public class MainActivity extends AppCompatActivity implements FragmentBase.Call
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if(resultCode == RESULT_OK) {
-            switch(requestCode) {
-                case GUIDE_REQ_CODE:
-                    //FragmentRouter.execute();
-                    break;
-            }
-        }
-    }
-
-    @Override
-    public View.OnClickListener getCardListnener() {
+    public View.OnClickListener getItemViewerListener() {
         return new View.OnClickListener() {
             @Override
-            public void onClick(View cardView) {
-                Intent intent = new Intent(MainActivity.this, CardDisplayActivity.class);
+            public void onClick(View v) {
 
-                if(cardView.getTag() instanceof Card) {
-                    Card card = (Card)cardView.getTag();
-//                    intent.putExtra("cardId", card.getCardId());
-                }
-
-                intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-                overridePendingTransition(R.anim.activity_fade_in, R.anim.activity_fade_out);
             }
         };
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return super.onTouchEvent(event);
+    public View.OnClickListener getCardListItemListener(final CardContent data) {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View cardView) {
+                if(data != null) mDataHolder.setData(data);
+                else return;
+
+                if(data instanceof CardInfo) FragmentRouter.setEnqueued(ITEM_VIEWER);
+                else if(data instanceof CardCat) FragmentRouter.setEnqueued(SUBLIST);
+
+                FragmentRouter.execute(MainActivity.this);
+            }
+        };
     }
 
     @Override
-    public void scrollToolbar(int scrollY, int actionBarSize, int vertThreshold) {
-//        View appbar = findViewById(R.id.main_appbar);
-//
-//        int scrollVal = -1;
-//        if(scrollY <= vertThreshold) scrollVal = 0;
-//        else if(scrollY > vertThreshold) {
-//            int direction = getScrollDirection(scrollY);
-//            directionCheck.directionChanged(direction, actionBarSize, toolbar.getScrollY());
-//
-//            switch(direction) {
-//                case UP:
-//                    scrollVal = actionBarSize - (int)ScrollUtils.getFloat((float)(revertPos - scrollY), 0, actionBarSize);
-//                    break;
-//                case DOWN:
-//                    scrollVal = (int)ScrollUtils.getFloat((float)(scrollY - revertPos), 0, actionBarSize);
-//                    break;
-//            }
-//        }
-//
-//        if(appbar != null && scrollVal != -1) {
-//            toolbar.setScrollY(scrollVal);
-//            appbar.setScrollY(scrollVal);
-//            appbar.getLayoutParams().height = actionBarSize - scrollVal;
-//            appbar.requestLayout();
-//        }
-//
-//        prevScrollY = scrollY;
+    public View.OnClickListener getFragListItemListener(final FragListItem data) {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDataHolder.setData(data);
+                FragmentRouter.setEnqueued(ITEM_VIEWER);
+                FragmentRouter.execute(MainActivity.this);
+            }
+        };
     }
 
     @Override
-    public void setToolbar(Toolbar toolbar) {
-//        this.toolbar = toolbar;
+    public View.OnClickListener getNavEndItemListener(@NonNull final NavItem data) {
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDataHolder.setData(data);
+                closeDrawer(GravityCompat.END);
+            }
+        };
     }
 
-    @Override
     public void closeDrawer(int gravity) {
-        Log.d("MainActivity", "drawer closed");
-        drawer.closeDrawer(gravity);
+        mDrawer.closeDrawer(gravity);
     }
 
+    public EchoSnackbar getSnackbar() {
+        return mSnackbar;
+    }
+
+    public EchoToolbar getToolbar() {return (EchoToolbar)findViewById(R.id.main_toolbar);}
+
     @Override
-    public void setGarageBtnVisibility(boolean visibility) {
-        drawer.setDrawerLockMode(
-                visibility ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
-                GravityCompat.END
-        );
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    private void onNavEndItemClicked(final Fragment f) {
+//        if(f instanceof FragmentLocator) {
+//            ((FragmentLocator)f).updateContents(getDataHolder().getLocatorData());
+//        }
+        if(f instanceof FragmentModelDocs) {
+            ((FragmentModelDocs)f).updateContents(getDataHolder().getModelData());
+        }
+    }
+
+    private static void assessStatusBarHeight(Resources resources) {
+        int result = 0;
+        int resourceId = resources.getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) result = resources.getDimensionPixelSize(resourceId);
+
+        MetricCalc.setStatusBarHeight(result);
+    }
+
+    public FragDataHolder getDataHolder() {return mDataHolder;}
+
+    public class FragDataHolder {
+        private Locator mLocatorData;
+        private Model mModelData;
+
+        private CardContent mCardData;
+
+        private FragListItem mListData;
+
+        void setData(CardContent data) {
+            mCardData = data;
+        }
+
+        void setData(NavItem data) {
+            switch(data.getNavType()) {
+                case LOCATOR: mLocatorData = (Locator)data; break;
+                case MODEL_DOCS: mModelData = (Model)data; break;
+            }
+        }
+
+        void setData(FragListItem data) {
+            mListData = data;
+        }
+
+        public Locator getLocatorData() {return mLocatorData;}
+        public Model getModelData() {return mModelData;}
+        public CardContent getCardData() {return mCardData;}
+        public FragListItem getListData() {return mListData;}
     }
 }

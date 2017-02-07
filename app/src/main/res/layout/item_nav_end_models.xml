@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:padding="8dp">
+    <!-- Might cause issue if text here is too long. NEed to figure out what to do -->
+    <widget.RoundImageView
+        android:id="@+id/nav_models_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
+    <TextView
+        android:id="@+id/nav_models_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="textStart"
+        android:layout_toEndOf="@id/nav_models_icon"
+        android:text="placeholder"
+        android:textSize="16sp"/>
+    <TextView
+        android:id="@+id/nav_models_serial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/nav_models_icon"
+        android:layout_below="@id/nav_models_name"
+        android:text="placeholder"
+        android:textSize="14sp"/>
+</RelativeLayout>

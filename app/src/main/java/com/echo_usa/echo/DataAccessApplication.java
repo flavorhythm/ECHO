@@ -15,7 +15,7 @@ public class DataAccessApplication extends Application {
      * VARIABLES
      */
     private static DataAccessObject mDataAccess;
-    private static ValueChangeSupport mValueChange;
+//    private static ValueChangeSupport mValueChange;
 
     /**
      * OVERRIDES
@@ -26,7 +26,7 @@ public class DataAccessApplication extends Application {
         super.onCreate();
 
         if(mDataAccess == null) mDataAccess = new DataAccessObject(DataAccessApplication.this);
-        if(mValueChange == null) mValueChange = new ValueChangeSupport();
+//        if(mValueChange == null) mValueChange = new ValueChangeSupport();
     }
 
     /**
@@ -36,5 +36,5 @@ public class DataAccessApplication extends Application {
     public DataAccessObject getDataAccessObject() {return mDataAccess;}
 
     /** Gets instance of ValueChangeSupport */
-    public ValueChangeSupport getValueChangeSupport() {return mValueChange;}
+//    public ValueChangeSupport getValueChangeSupport() {return mValueChange;}
 }

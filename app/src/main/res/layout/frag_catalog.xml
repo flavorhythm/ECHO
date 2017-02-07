@@ -1,12 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_marginTop="?attr/actionBarSize"
-    android:orientation="vertical"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <ImageView
-        android:id="@+id/test_catalog"
+        android:id="@+id/catalog_header"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitCenter"/>
-</LinearLayout>
+        android:scaleType="centerCrop"
+        android:src="@drawable/drawer_header"/>
+    <View
+        android:id="@+id/catalog_img_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorPrimary" />
+    <View
+        android:id="@+id/catalog_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bg_list" />
+    <com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView
+        android:id="@+id/catalog_recycler"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:scrollbars="none" />
+</FrameLayout>
+
+    <!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+    <!--android:layout_marginTop="?attr/actionBarSize"-->
+    <!--android:orientation="vertical"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="match_parent">-->
+    <!--<com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView-->
+        <!--android:id="@+id/frag_catalog_list"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"/>-->
+    <!--&lt;!&ndash;<ImageView&ndash;&gt;-->
+        <!--&lt;!&ndash;android:id="@+id/test_catalog"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:layout_height="match_parent"&ndash;&gt;-->
+        <!--&lt;!&ndash;android:scaleType="fitCenter"/>&ndash;&gt;-->
+<!--</LinearLayout>-->

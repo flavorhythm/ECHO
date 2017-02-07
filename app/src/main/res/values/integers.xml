@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="standard_padding">8</integer>
+
+    <integer name="card_image_width">120</integer>
+    <integer name="card_image_height">180</integer>
+
+    <integer name="content_title_size">18</integer>
+    <integer name="content_subtitle_size">14</integer>
+    <integer name="content_footer_size">12</integer>
+
+    <integer name="divider_line_width">100</integer>
+    <integer name="divider_line_height">6</integer>
+
+    <integer name="divider_title_size">18</integer>
+    <integer name="divider_subtitle_size">14</integer>
+
+    <integer name="circular_image_size">40</integer>
+
+    <integer name="model_image_height">500</integer>
+    <integer name="model_image_width">350</integer>
+    <integer name="model_image_shadow_size">8</integer>
+
+    <integer name="model_image_min_alpha">0</integer>
+    <integer name="model_image_max_alpha">255</integer>
+
+    <integer name="model_image_max_y_translation">320</integer>
+
+    <integer name="model_list_height">320</integer>
+
+    <integer name="icon_size">24</integer>
+    <integer name="snackbar_size">48</integer>
+    <integer name="snackbar_text_x">24</integer>
+    <integer name="snackbar_text_y">14</integer>
+    <integer name="snackbar_duration">1000</integer>
+</resources>

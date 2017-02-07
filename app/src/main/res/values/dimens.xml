@@ -18,4 +18,42 @@
     <!--<dimen name="card_home_imageHeight">350dp</dimen>-->
     <dimen name="action_bar_elevation">0dp</dimen>
     <dimen name="appbar_padding_top">8dp</dimen>
+
+    <dimen name="arrow_width">12dp</dimen>
+    <dimen name="arrow_height">6dp</dimen>
+
+    <dimen name="standard_padding">8dp</dimen>
+
+    <dimen name="card_image_width">120dp</dimen>
+    <dimen name="card_image_height">180dp</dimen>
+
+    <dimen name="model_name_size">22sp</dimen>
+    <dimen name="content_title_size">18sp</dimen>
+    <dimen name="content_subtitle_size">14sp</dimen>
+    <dimen name="content_footer_size">12sp</dimen>
+
+    <dimen name="divider_line_width">100dp</dimen>
+    <dimen name="divider_line_height">6dp</dimen>
+
+    <dimen name="divider_title_size">18dp</dimen>
+    <dimen name="divider_subtitle_size">14dp</dimen>
+
+    <dimen name="circular_image_size">40dp</dimen>
+
+    <dimen name="model_image_height">500dp</dimen>
+    <dimen name="model_image_width">350dp</dimen>
+    <dimen name="model_image_shadow_size">8dp</dimen>
+
+    <dimen name="model_image_min_alpha">0dp</dimen>
+    <dimen name="model_image_max_alpha">255dp</dimen>
+
+    <dimen name="model_drawer_size">320dp</dimen>
+
+    <dimen name="model_list_height">320dp</dimen>
+
+    <dimen name="icon_size">24dp</dimen>
+    <dimen name="snackbar_size">48dp</dimen>
+    <dimen name="snackbar_text_x">24dp</dimen>
+    <dimen name="snackbar_text_y">14dp</dimen>
+    <dimen name="snackbar_duration">1000dp</dimen>
 </resources>

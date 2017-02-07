@@ -1,102 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/modelInfo_scroll_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_garage"
-    android:layout_gravity="bottom">
-    <widget.ModelInfoList
+    android:background="@null">
+    <widget.ModelListView
         android:id="@+id/modelInfo_docs_list"
         android:layout_width="match_parent"
         android:layout_height="320dp"
         android:layout_alignParentBottom="true"/>
-
-    <!--<ListView-->
-        <!--android:id="@+id/modelInfo_docs_list"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="320dp"-->
-        <!--android:layout_alignParentBottom="true"/>-->
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="10dp"
-        android:src="@drawable/bg_model_info_upper_fade"
-        android:layout_alignParentBottom="true"/>
-    <!--<android.support.v7.widget.RecyclerView-->
-        <!--android:id="@+id/modelInfo_recycler_cards"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_alignParentBottom="true"-->
-        <!--android:layout_marginBottom="50dp"-->
-        <!--android:orientation="horizontal"/>-->
     <widget.ModelDrawerView
         android:id="@+id/modelInfo_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-    <TextSwitcher
-        android:id="@+id/modelInfo_text_titleText"
-        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="?android:attr/actionBarSize"
-        android:background="@color/bg_garage"
-        android:layout_alignParentTop="true"/>
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="5dp"
-        android:src="@drawable/bg_model_info_lower_fade"
-        android:layout_below="@+id/modelInfo_text_titleText"/>
-
-    <!--<Button-->
-        <!--android:id="@+id/test_toggle_btn"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:text="toggle"-->
-        <!--android:layout_alignParentTop="true"-->
-        <!--android:layout_alignParentStart="true"-->
-        <!--android:layout_marginTop="100dp"/>-->
-
-    <widget.EmptyModelView
+        android:layout_alignParentBottom="true"/>
+    <widget.EchoLogoView
         android:id="@+id/modelInfo_empty"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-
-    <!--<RelativeLayout-->
-        <!--android:id="@+id/modelInfo_group_btnGroup"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="60dp"-->
-        <!--android:layout_alignParentBottom="true"-->
-        <!--android:background="@color/bg_garage">-->
-        <!--<Button-->
-            <!--style="?android:buttonBarButtonStyle"-->
-            <!--android:id="@+id/modelInfo_btn_documentation"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="Manuals"-->
-            <!--android:textSize="12dp"-->
-            <!--android:layout_alignParentStart="true"-->
-            <!--android:layout_alignParentTop="true"-->
-            <!--android:layout_toStartOf="@+id/modelInfo_btn_maintenance"-->
-            <!--android:drawableTop="@drawable/ic_vector_docs_dark"/>-->
-        <!--<Button-->
-            <!--style="?android:buttonBarButtonStyle"-->
-            <!--android:id="@+id/modelInfo_btn_maintenance"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="Maintenance"-->
-            <!--android:textSize="12dp"-->
-            <!--android:paddingStart="24dp"-->
-            <!--android:paddingEnd="24dp"-->
-            <!--android:layout_centerHorizontal="true"-->
-            <!--android:layout_alignParentTop="true"-->
-            <!--android:drawableTop="@drawable/ic_vector_maintenance"/>-->
-        <!--<Button-->
-            <!--style="?android:buttonBarButtonStyle"-->
-            <!--android:id="@+id/modelInfo_btn_specs"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="Specs"-->
-            <!--android:textSize="12dp"-->
-            <!--android:layout_alignParentEnd="true"-->
-            <!--android:layout_alignParentTop="true"-->
-            <!--android:layout_toEndOf="@+id/modelInfo_btn_maintenance"-->
-            <!--android:drawableTop="@drawable/ic_vector_specs"/>-->
-    <!--</RelativeLayout>-->
 </RelativeLayout>

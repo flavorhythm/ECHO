@@ -1,40 +1,60 @@
 package fragment;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.util.LruCache;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.transition.Visibility;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
+import android.view.ViewGroup;
 
 import com.echo_usa.echo.DataAccessApplication;
-import com.echo_usa.echo.R;
+import com.echo_usa.echo.MainActivity;
 
 import data.DataAccessObject;
-import util.MetricCalcs;
+import util.FragSpec;
+import util.ImageLoaderTask;
+import util.MetricCalc;
+import widget.EchoSnackbar;
+import widget.EchoToolbar;
 
 /**
  * Created by zyuki on 6/2/2016.
  */
-public class FragmentBase extends Fragment {
-    protected static Callback callback;
-    protected static DataAccessObject dataAccess;
 
-    private static Toolbar mToolbar;
+//TODO: make transitions smoother here
+public class FragmentBase extends Fragment implements ImageLoaderTask.Callback {
+    private static final int SCROLL_HEADER_THRESHOLD = MetricCalc.getDrawerHeaderHeight();
+//    protected static final int NO_HEADER_THRESHOLD = 0;
+
+    protected static DataAccessObject mDataAccess;
+
+    protected static LruCache<String, Bitmap> sMemCache; //TODO: save?
 
     @Override
     public void onAttach(Context context) {
         Log.v("FragmentBase", "onAttach");
         super.onAttach(context);
 
-        callback = (Callback)context;
+        final int maxMemory = (int)(Runtime.getRuntime().maxMemory() / 1024);
+        final int cacheSize = maxMemory / 8;
+
+        sMemCache = new LruCache<String, Bitmap>(cacheSize) {
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap) {return bitmap.getByteCount() / 1024;}
+        };
+
+//        if(getToolbar() != null) {
+//            EchoToolbar.getShowHideAnim(getToolbar()).start();
+//        }
     }
 
     @Override
@@ -42,157 +62,66 @@ public class FragmentBase extends Fragment {
         Log.v("FragmentBase", "onCreate");
         super.onCreate(savedInstanceState);
 
-        dataAccess = ((DataAccessApplication)getActivity().getApplication()).getDataAccessObject();
+        setHasOptionsMenu(true);
+        mDataAccess = ((DataAccessApplication)getActivity().getApplication()).getDataAccessObject();
     }
 
     @Override
-    public void onViewCreated(View fragmentView, @Nullable Bundle savedInstanceState) {
-        Log.v("FragmentBase", "onViewCreated: " + fragmentView.toString());
-        super.onViewCreated(fragmentView, savedInstanceState);
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        getToolbar().onPrepareFragmentMenu();
     }
 
-    @Override
-    public void onResume() {
-        Log.v("FragmentBase", "onResume: " + getContext().toString());
-        Log.v("FragmentBase", "onResume: is equals? " + String.valueOf(callback.equals(getContext())));
-        //mToolbar.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.app_bar_solid));
+    protected EchoToolbar getToolbar() {return ((MainActivity)getActivity()).getToolbar();}
+    protected static DataAccessObject getDataAccess() {return mDataAccess;}
 
-//        if(mToolbar != null) {
-//            mToolbar.setBackground(
-//                    ContextCompat.getDrawable(getContext(), R.drawable.app_bar_solid)
-//            );
+    protected enum Threshold {
+        W_HEADER, NO_HEADER;
+    }
+
+    protected int getToolbarAlphaThreshold(Threshold threshold) {
+        switch(threshold) {
+            case W_HEADER: return SCROLL_HEADER_THRESHOLD - MetricCalc.getActionBarSize(getContext());
+            default: return 0;
+        }
+//        switch(f) {
+//            case HOME: case CATALOG: case SUBLIST:
+//                return SCROLL_HEADER_THRESHOLD - MetricCalc.getActionBarSize(getContext());
+//            case GUIDE: return NO_HEADER_THRESHOLD;
+//            default: return NO_HEADER_THRESHOLD;
 //        }
-        super.onResume();
-
-        if(callback != null && !callback.equals(getContext())) callback = (Callback)getContext();
-        Log.v("FragmentBase", "onResume: is now? " + String.valueOf(callback.equals(getContext())));
     }
 
     @Override
-    public void onPause() {
-        //TODO: still not working
-        super.onPause();
+    public Bitmap getFromCache(String key) {return sMemCache.get(key);}
+
+    @Override
+    public void addToCache(String key, Bitmap bitmap) {
+        if(getFromCache(key) == null) sMemCache.put(key, bitmap);
     }
 
-    public void setToolbar(Toolbar toolbar) {
-        mToolbar = toolbar;
+    protected static View getPaddingView(Context context, int paddingY) {
+        View v = new View(context);
+        RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                paddingY
+        );
+
+        v.setLayoutParams(lp);
+        return v;
     }
 
-    public Toolbar getToolbar() throws NullPointerException {
-        if(mToolbar != null) return mToolbar;
-        else throw new NullPointerException("toolbar is null");
-    }
+    protected static boolean cancelPotentialWork(int contentKey, ImageLoaderTask task) {
+        if (task != null) {
+            final int taskKey = task.getKey();
+            // If bitmapData is not yet set or it differs from the new data
+            // Cancel previous task
+            if (taskKey == 0 || taskKey != contentKey) task.cancel(true);
+                // The same work is already in progress
+            else return false;
+        }
 
-    public RecyclerView.OnScrollListener getListenerWithThreshold(final int currentScroll, final int threshold) {
-        return new RecyclerView.OnScrollListener() {
-            final int adjThreshold = threshold >= MetricCalcs.getActionBarSize(getContext()) ?
-                    threshold - MetricCalcs.getActionBarSize(getContext()) : 0;
-            int verticalOffset = currentScroll;
-            int deltaY = 0;
-
-            private boolean thresholdCondition() {return adjThreshold > verticalOffset;}
-
-            private int getAlpha(Double offsetDouble, Double thresholdDouble) {
-                final int maxAlpha = 255;
-
-                if(adjThreshold != 0) {
-                    double percentage = (offsetDouble / thresholdDouble) < 1f ?
-                            offsetDouble / thresholdDouble : 1f;
-                    return (int)Math.floor(maxAlpha * percentage);
-                } else return maxAlpha;
-            }
-
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                try {
-                    Toolbar toolbar = getToolbar();
-
-                    if(thresholdCondition()) {
-                        showToolbarAnim();
-                        return;
-                    }
-
-                    if(newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        if(deltaY > 0) {
-                            if(verticalOffset <= toolbar.getTranslationY()) showToolbarAnim();
-                        } else if(deltaY < 0){
-                            boolean condition = toolbar.getTranslationY() < toolbar.getHeight() * -0.6;
-
-                            if(condition) hideToolbarAnim();
-                            else showToolbarAnim();
-                        } else showToolbarAnim();
-                    }
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                verticalOffset += dy;
-                deltaY = dy;
-
-                try {
-                    Toolbar toolbar = getToolbar();
-                    //Must be declared here or weird threshold setting bug arises
-                    Drawable toolbarBg = ContextCompat.getDrawable(getContext(), R.drawable.app_bar_solid);
-                    toolbarBg.setAlpha(getAlpha((double)verticalOffset, (double)adjThreshold));
-
-                    toolbar.setBackground(toolbarBg);
-
-                    if(thresholdCondition()) return;
-
-                    int toolbarOffsetY = (int)(dy - toolbar.getTranslationY());
-                    toolbar.animate().cancel();
-
-                    if(deltaY > 0) {
-                        if(toolbarOffsetY < toolbar.getHeight()) toolbar.setTranslationY(-toolbarOffsetY);
-                        else toolbar.setTranslationY(-toolbar.getHeight());
-
-                    } else if(deltaY < 0) {
-                        if (toolbarOffsetY < 0) toolbar.setTranslationY(0);
-                        else toolbar.setTranslationY(-toolbarOffsetY);
-
-                    } else toolbar.setTranslationY(-toolbarOffsetY);
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-    }
-
-    private void showToolbarAnim() {
-        mToolbar.animate()
-                .translationY(0)
-                .setInterpolator(new LinearInterpolator())
-                .setDuration(180)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                        super.onAnimationStart(animation);
-                    }
-                }).start();
-    }
-
-    private void hideToolbarAnim() {
-        //((TransitionDrawable)mActionbarBg).startTransition(180);
-        mToolbar.animate()
-                .translationY(-mToolbar.getHeight())
-                .setInterpolator(new LinearInterpolator())
-                .setDuration(180)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
-                    }
-                }).start();
-    }
-
-    public interface Callback {
-        View.OnClickListener getCardListnener();
-        void scrollToolbar(int scrollY, int actionbarSize, int vertThreshold);
-        void setToolbar(Toolbar toolbar);
-        void closeDrawer(int gravity);
-        void setGarageBtnVisibility(boolean visible);
+        // No task associated with the ImageView, or an existing task was cancelled
+        return true;
     }
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+    <ImageView
+        android:id="@+id/nav_locator_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true" />
+    <android.support.v7.widget.AppCompatRadioButton
+        android:id="@+id/nav_locator_select"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/nav_locator_icon"/>
+    <TextView
+        android:id="@+id/nav_locator_setting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="textStart"
+        android:layout_toEndOf="@+id/nav_locator_select"
+        android:layout_centerVertical="true"
+        android:text="placeholder"
+        android:textSize="16sp"/>
+    <android.support.v7.widget.AppCompatImageButton
+        android:id="@+id/nav_locator_info"
+        android:src="@drawable/ic_vector_locator_info"
+        android:background="@color/black_trans"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"/>
+</RelativeLayout>

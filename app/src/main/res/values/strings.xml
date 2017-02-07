@@ -26,4 +26,12 @@
     <string name="no_unit_selected">No unit selected</string>
     <string name="pick_unit">Pick a unit from My Garage</string>
     <string name="catalog">Catalog</string>
+    <string name="btn_learn_more">Click to learn more</string>
+
+    <string name="arrow_name">arrow</string>
+    <string name="arrow_point_up">M0,6 l12,0 l-6,-6 z</string>
+    <string name="item_viewer_text">Sorry! I can\'t display this at the moment.</string>
+    <string name="nav_drawer_video">Videos</string>
+
+    <string name="locator_text">Displaying closest ten dealers to your current location</string>
 </resources>

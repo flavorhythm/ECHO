@@ -2,783 +2,575 @@ package widget;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.GradientDrawable;
+import android.hardware.SensorManager;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GestureDetectorCompat;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.AccelerateInterpolator;
+import android.view.ViewConfiguration;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.OverScroller;
 
 import com.echo_usa.echo.R;
 
-import util.MetricCalcs;
+import data.navigation.Model;
 
 /**
  * Created by ZYuki on 6/30/2016.
  */
-public class ModelDrawerView extends View {
-    private static TimeInterpolator DECELERATE = new DecelerateInterpolator();
-    private static TimeInterpolator ACCEL_DECEL = new AccelerateDecelerateInterpolator();
-    private static TimeInterpolator ACCELERATE = new AccelerateInterpolator();
+//TODO: extend EchoView
+public class ModelDrawerView extends EchoSuperView {
+    private static final float DECELERATION_RATE = (float) (Math.log(0.78) / Math.log(0.9));
+    private static final float INFLEXION = 0.35f;
+    private static final int V_UNIT_SCALE = 1000;
+    private static final float PPI = Resources.getSystem().getDisplayMetrics().density * 160.0f;
+    private static final float PHYSICAL_COEFF = SensorManager.GRAVITY_EARTH // g (m/s^2)
+            * 39.37f // inch/meter
+            * PPI
+            * 0.84f; // look and feel tuning;
 
-    private static final int MAX_TRANS_Y = 320;
+    private int mTextHeight;
+    private Paint mImageBgPaint;
+    private Paint mDisplayedPaint;
+    private Paint mEnqueuedPaint;
+    private Paint mTitleBgPaint;
+    private TextPaint mDisplayedTextPaint;
+    private TextPaint mEnqueuedTextPaint;
 
-    private static final int MIN_ALPHA = 0;
-    private static final int MAX_ALPHA = 255;
+    private Point mTitleOrigin;
+    private Point mImageOrigin;
+//    private Point mEnqueuedOrigin;
 
-    private static final int IMG_HEIGHT = 500;
-    private static final int IMG_WIDTH = 350;
+    private CharSequence mDisplayedName;
+    private StaticLayout mDisplayedLayout;
 
-    private static final int ON_BTM_IMG_SHDW_SIZE = 8;
+    private CharSequence mEnqueuedName;
+    private StaticLayout mEnqueuedLayout;
 
-    private int imageHeight = MetricCalcs.dpToPixels(IMG_HEIGHT);
-    private int imageWidth = MetricCalcs.dpToPixels(IMG_WIDTH);
+    private Rect mBgBounds;
+    private Rect mTextBgBounds;
+    private Rect mTopShadowBounds;
+    private Rect mBtmShadowBounds;
+    private Rect mImgMask;
 
-    private Paint whiteBgPaint;
-    private Paint imgAlphaPaint;
+    private Bitmap mDisplayedBitmap, mEnqueuedBitmap;
+    private GradientDrawable mDrawerShadow, mTopShadow, mBtmShadow;
+    private VectorDrawableCompat mDrawerArrow;
 
-    private Callback callback;
-    private DrawerState drawerState;
+    private Callback mCallback;
 
-    int screenWidth = MetricCalcs.getScreenWidth();
-    int screenHeight = MetricCalcs.getScreenHeight() - MetricCalcs.getStatusBarHeight();
-    int actionBarHeight = MetricCalcs.getActionBarSize(getContext());
+    private VelocityTracker mVelocityTracker;
+    private float mPrevX, mPrevY;
+    private boolean mIsDragging = false;
+    private FlingRunnable mFlingRunnable;
+    private Model mDisplayedModel;
 
-    int onBtmShadowHeight = MetricCalcs.dpToPixels(ON_BTM_IMG_SHDW_SIZE);
+    public ModelDrawerView(Context context) {
+        super(context);
+    }
 
-    int imgLeft = (screenWidth - imageWidth) / 2;
-    int imgTop = screenHeight - imageHeight;
-    int onBtmImgShadowTop = screenHeight;
+    public ModelDrawerView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-    private Rect whiteBgBounds;
-    private Rect onBtmShadowBounds;
-    private Rect imgBounds;
-    private Rect imgMask;
-
-    private ValueAnimator openDrawer, closeDrawer;
-
-    private Bitmap imgBitmap;
-    private GradientDrawable onBtmShadowDrawable;
-
-    private AnimatorSet imgAnimOut, imgAnimIn;
-
-    private GestureDetectorCompat detector;
-
-    private int translateX = 0;
-    private int translateY = 0;
-    private int alpha = 255;
-
-    //TODO: view function order8
-    //1. set model image <- requires image setter, image splitter and top/bottom drawable
-    //1.5 clear empty model view
-    //2. open this view to show recyclerview
-    //3. use the same code used in split to "move" image of unit
-
-    //TODO: required methods
-    //1. image setter, image splitter
-    //2. upper/lower image animation -> open/close/toggle
-    //3. swipe left/right
-
-    public ModelDrawerView(Context context) {this(context, null);}
-    public ModelDrawerView(Context context, AttributeSet attrs) {this(context, attrs, 0);}
-    public ModelDrawerView(Context context, AttributeSet attrs, int defStyleAttr) {this(context, attrs, defStyleAttr, 0);}
+    public ModelDrawerView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public ModelDrawerView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+    }
 
-        drawerState = new DrawerState();
-        detector = new GestureDetectorCompat(getContext(), new CustomGestureDetector());
-        setModelImage(R.drawable.srm_225);
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        SavedState savedState = new SavedState(superState);
 
-        whiteBgPaint = new Paint();
-        whiteBgPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        if(mDisplayedModel != null) {
+            savedState.savedRes = mDisplayedModel.getImgResource();
+            savedState.savedName = mDisplayedModel.getModelName();
+            savedState.savedSerial = mDisplayedModel.getSerialNum();
 
-        imgAlphaPaint = new Paint();
-        imgAlphaPaint.setAlpha(MAX_ALPHA);
+            return savedState;
+        }
 
-        onBtmShadowBounds = new Rect(0, onBtmImgShadowTop, screenWidth, onBtmImgShadowTop + onBtmShadowHeight);
+        return null;
+    }
 
-        onBtmShadowDrawable = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_lower_fade);
-        onBtmShadowDrawable.setBounds(onBtmShadowBounds);
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        SavedState savedState = (SavedState)state;
+        super.onRestoreInstanceState(savedState.getSuperState());
 
-        whiteBgBounds = new Rect(0, MetricCalcs.getStatusBarHeight(), screenWidth, screenHeight);
-        imgBounds = new Rect(imgLeft, imgTop, imgLeft + imageWidth, screenHeight);
-        imgMask = new Rect(imgLeft, imgTop, imgLeft + imageWidth, screenHeight);
+        mDisplayedModel = new Model(
+                savedState.savedRes,
+                savedState.savedName,
+                savedState.savedSerial,
+                0
+        );
 
-        openDrawer = ValueAnimator.ofInt(0, MetricCalcs.dpToPixels(MAX_TRANS_Y));
-        closeDrawer = ValueAnimator.ofInt(MetricCalcs.dpToPixels(MAX_TRANS_Y), 0);
+        updateModel();
+    }
 
-        openDrawer.setInterpolator(DECELERATE);
-        closeDrawer.setInterpolator(ACCEL_DECEL);
+    @Override
+    protected void initialize(AttributeSet attrs) {
+        if(attrs != null) {}
+        setSaveEnabled(true);
 
-        ValueAnimator animateImgOut = ValueAnimator.ofInt(0, imageWidth);
-        ValueAnimator animateImgIn = ValueAnimator.ofInt(-1 * imageWidth, 0);
+        mVelocityTracker = VelocityTracker.obtain();
+        mFlingRunnable = new FlingRunnable(this);
 
-        ValueAnimator animateImgToGone = ValueAnimator.ofInt(MAX_ALPHA, MIN_ALPHA);
-        ValueAnimator animateImgToVisible = ValueAnimator.ofInt(MIN_ALPHA, MAX_ALPHA);
+        mDrawerArrow = VectorDrawableCompat.create(getResources(), R.drawable.ic_vector_arrow_up, null);
 
-        ValueAnimator.AnimatorUpdateListener translateYListener = new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                translateY = (int)animation.getAnimatedValue();
+        mImageBgPaint = getPaintObj(getContext(), ALPHA_VISIBLE, R.color.white);
+        mTitleBgPaint = getPaintObj(getContext(), ALPHA_VISIBLE, R.color.bg_garage);
+        mDisplayedPaint = getPaintObj(getContext(), ALPHA_VISIBLE, NO_COLOR);
+        mEnqueuedPaint = getPaintObj(getContext(), ALPHA_GONE, NO_COLOR);
 
-                updateContentBounds();
-                invalidate();
-            }
-        };
+        mDisplayedTextPaint = getTextPaintObj(getContext(), R.dimen.model_name_size, R.color.echo_orange);
+        mEnqueuedTextPaint = getTextPaintObj(getContext(), R.dimen.model_name_size, R.color.echo_orange);
 
-        ValueAnimator.AnimatorUpdateListener translateXListener = new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                translateX = (int)animation.getAnimatedValue();
+        mDrawerShadow = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_lower_fade);
+        mBtmShadow = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_upper_fade);
+        mTopShadow = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_lower_fade);
 
-                updateContentBounds();
-                invalidate();
-            }
-        };
+        mTitleOrigin = new Point(0, 0);
+        mTextBgBounds = new Rect(0, getTitleBarTop(), SCREEN_WIDTH, getTitleBarBtm());
 
-        ValueAnimator.AnimatorUpdateListener alphaListener = new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                alpha = (int)animation.getAnimatedValue();
+        Rect shadowBounds = new Rect(0, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT + SHADOW_HEIGHT);
+        mDrawerShadow.setBounds(shadowBounds);
 
-                updateContentBounds();
-                invalidate();
-            }
-        };
+        mBtmShadowBounds = new Rect(0, SCREEN_HEIGHT - SHADOW_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+        mBtmShadow.setBounds(mBtmShadowBounds);
 
-        openDrawer.addUpdateListener(translateYListener);
-        closeDrawer.addUpdateListener(translateYListener);
+        mTopShadowBounds = new Rect(0, AB_HEIGHT * 2, SCREEN_WIDTH, AB_HEIGHT * 2 + SHADOW_HEIGHT);
+        mTopShadow.setBounds(mTopShadowBounds);
 
-        animateImgOut.addUpdateListener(translateXListener);
-        animateImgIn.addUpdateListener(translateXListener);
+        mImageOrigin = new Point(getImageLeft(), getImageTop());
 
-        animateImgIn.setInterpolator(DECELERATE);
-        animateImgOut.setInterpolator(ACCELERATE);
+        mBgBounds = new Rect(0, getBgTop(), SCREEN_WIDTH, SCREEN_HEIGHT);
+        mImgMask = new Rect(0, getBgTop(), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        animateImgToGone.addUpdateListener(alphaListener);
-        animateImgToVisible.addUpdateListener(alphaListener);
+        Rect arrowBounds = new Rect(
+                (SCREEN_WIDTH - mDrawerArrow.getIntrinsicWidth()) / 2,
+                SCREEN_HEIGHT - PADDING - mDrawerArrow.getIntrinsicHeight(),
+                (SCREEN_WIDTH + mDrawerArrow.getIntrinsicWidth()) / 2,
+                SCREEN_HEIGHT - PADDING
+        );
+        mDrawerArrow.setBounds(arrowBounds);
+    }
 
-        animateImgToGone.setInterpolator(DECELERATE);
-        animateImgToVisible.setInterpolator(ACCELERATE);
+    public Model getDisplayedModel() {return mDisplayedModel;}
 
-        openDrawer.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        if(l != oldl || t != oldt) {
+            updateContentBounds();
+        }
+    }
 
-                drawerState.setDrawerStateClosed(false);
-            }
-        });
+    @Override
+    public void scrollTo(int x, int y) {
+        x = clampScroll(x, 0, 0);
+        y = clampScroll(y, 0, DRAWER_OPEN_SIZE);
 
-        closeDrawer.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                super.onAnimationEnd(animation);
-
-                drawerState.setDrawerStateClosed(true);
-            }
-        });
-
-        imgAnimOut = new AnimatorSet();
-        imgAnimOut.play(animateImgOut).with(animateImgToGone);
-
-        imgAnimIn = new AnimatorSet();
-        imgAnimIn.play(animateImgIn).with(animateImgToVisible);
-
-        updateContentBounds();
+        super.scrollTo(x, y);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if(event.getActionMasked() == MotionEvent.ACTION_UP) snapBack((double)translateY, (double)imageHeight);
-        return this.detector.onTouchEvent(event);
+        mVelocityTracker.addMovement(event);
+
+        switch(event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                mIsDragging = false;
+                mVelocityTracker.clear();
+
+                mPrevX = event.getX();
+                mPrevY = event.getY();
+
+                if((SCREEN_HEIGHT - event.getY()) > getScrollY()) {
+                    mFlingRunnable.abortIfFlingPersists();
+                    return true;
+                } else return false;
+            case MotionEvent.ACTION_MOVE:
+                final float xPos = event.getX();
+                final float yPos = event.getY();
+                float xDelta = mPrevX - xPos;
+                float yDelta = mPrevY - yPos;
+
+                int slop = getTouchSlop();
+                boolean touchSlopCondition = Math.abs(xDelta) > slop || Math.abs(yDelta) > slop;
+                if(!mIsDragging && touchSlopCondition) {mIsDragging = true;}
+                if(mIsDragging) {
+                    scrollBy((int)xDelta, (int)yDelta);
+
+                    mPrevX = xPos;
+                    mPrevY = yPos;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                mIsDragging = false;
+                mVelocityTracker.computeCurrentVelocity(V_UNIT_SCALE, getFlingVelocity(DRAWER_OPEN_SIZE));
+                int velocityY = (int)mVelocityTracker.getYVelocity();
+
+                mFlingRunnable.flingY(
+                        getScrollY(),
+                        adjustVelocity(velocityY)
+                );
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                mIsDragging = false;
+                mFlingRunnable.abortIfFlingPersists();
+                break;
+        }
+
+        return super.onTouchEvent(event);
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        int resolvedWidth = View.resolveSize(desiredWidth(), widthMeasureSpec);
-        int resolvedHeight = View.resolveSize(desiredHeight(), heightMeasureSpec);
-
-        setMeasuredDimension(resolvedWidth, resolvedHeight);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if(onBtmShadowDrawable != null) onBtmShadowDrawable.draw(canvas);
+        if(mDrawerShadow != null) mDrawerShadow.draw(canvas);
+        if(mBtmShadow != null) mBtmShadow.draw(canvas);
 
-        if(whiteBgBounds != null) canvas.drawRect(whiteBgBounds, whiteBgPaint);
+        if(mImgMask != null) {
+            canvas.save();
+            canvas.clipRect(mImgMask, Region.Op.INTERSECT);
+            int x = mImageOrigin != null ? mImageOrigin.x : 0;
+            int y = mImageOrigin != null ? mImageOrigin.y : 0;
 
-        if(imgBounds != null && imgBitmap != null) {
-            if(imgAlphaPaint != null) imgAlphaPaint.setAlpha(alpha);
+            if(mBgBounds != null) canvas.drawRect(mBgBounds, mImageBgPaint);
+            if(mDisplayedBitmap != null) canvas.drawBitmap(mDisplayedBitmap, x, y, mDisplayedPaint);
+            if(mEnqueuedBitmap != null) canvas.drawBitmap(mEnqueuedBitmap, x, y, mEnqueuedPaint);
 
-            if(imgMask != null) canvas.clipRect(imgMask, Region.Op.REPLACE);
-            canvas.drawBitmap(imgBitmap, imgBounds.left, imgBounds.top, imgAlphaPaint);
+            canvas.restore();
+        }
+
+        if(mTopShadow != null) mTopShadow.draw(canvas);
+        if(mTextBgBounds != null) canvas.drawRect(mTextBgBounds, mTitleBgPaint);
+
+        if(mTitleOrigin != null) {
+            canvas.save();
+            canvas.translate(mTitleOrigin.x, mTitleOrigin.y);
+
+            if(mDisplayedLayout != null) mDisplayedLayout.draw(canvas);
+            if(mEnqueuedLayout != null) mEnqueuedLayout.draw(canvas);
+
+            canvas.restore();
+        }
+
+        if(mDrawerArrow != null) {
+            canvas.save();
+            canvas.rotate(
+                    getDegreeFromScrollY(),
+                    mDrawerArrow.getBounds().centerX(),
+                    mDrawerArrow.getBounds().centerY()
+            );
+            mDrawerArrow.draw(canvas);
+            canvas.restore();
         }
     }
 
-    private void setModelImage(int resource) {
-        imgBitmap = BitmapFactory.decodeResource(getContext().getResources(), resource);
+    public boolean updateModel(Model model) {
+        //No need to check for model == null since navEndListener in MainActivity already does so
+        if(mDisplayedModel == null) {
+            mDisplayedModel = model;
+            updateModel();
+
+            return true;
+        }
+
+        if(!model.getSerialNum().equals(mDisplayedModel.getSerialNum())) {
+            mDisplayedModel = model;
+
+            mFlingRunnable.raiseNewModelFlag();
+            mFlingRunnable.flingY(getScrollY(), -getFlingVelocity(getScrollY()));
+
+            return true;
+        }
+
+        return false;
     }
 
-    public void updateModelImage(final int resource) {
-        AnimatorSet localAnimation = imgAnimOut.clone();
-        localAnimation.addListener(new AnimatorListenerAdapter() {
+    public void setCallback(Callback callback) {mCallback = callback;}
+
+    //TODO: must change along with the way view is updated
+    private static ValueAnimator getModelChangeAnim(final ModelDrawerView v) {
+        final int w = v.SCREEN_WIDTH;
+
+        ValueAnimator va = ValueAnimator.ofInt(ALPHA_VISIBLE, ALPHA_GONE);
+        ValueAnimator.AnimatorUpdateListener alphaListener = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                final int alpha = (int)animation.getAnimatedValue();
+
+                if(v.mDisplayedName != null) {
+                    v.mDisplayedTextPaint.setAlpha(alpha);
+                    Log.d("update", "animationUpdate() displayed a: " + v.mDisplayedTextPaint.getAlpha());
+                    v.mDisplayedLayout = getTextLayout(
+                            v.mDisplayedName, v.mDisplayedTextPaint, w, ALIGN_CENTER
+                    );
+                }
+
+                if(v.mEnqueuedName != null) {
+                    v.mEnqueuedTextPaint.setAlpha(ALPHA_VISIBLE - alpha);
+                    Log.d("update", "animationUpdate() enqueued a: " + v.mEnqueuedTextPaint.getAlpha());
+                    v.mEnqueuedLayout = getTextLayout(
+                            v.mEnqueuedName, v.mEnqueuedTextPaint, w, ALIGN_CENTER
+                    );
+                }
+
+                v.mDisplayedPaint.setAlpha(alpha);
+                v.mEnqueuedPaint.setAlpha(ALPHA_VISIBLE - alpha);
+                v.updateContentBounds();
+                v.invalidate();
+            }
+        };
+        va.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
+                v.mDisplayedName = v.mEnqueuedName;
+                v.mEnqueuedName = null;
+                v.mEnqueuedLayout = null;
 
-                setModelImage(resource);
+                if(v.mDisplayedName != null) {
+                    v.mDisplayedTextPaint.setAlpha(ALPHA_VISIBLE);
+                    v.mDisplayedLayout = getTextLayout(
+                            v.mDisplayedName, v.mDisplayedTextPaint, w, ALIGN_CENTER
+                    );
+                }
 
-                updateContentBounds();
-                invalidate();
+                v.mDisplayedBitmap = v.mEnqueuedBitmap;
+                v.mEnqueuedBitmap = null;
+                v.mDisplayedPaint.setAlpha(ALPHA_VISIBLE);
+                v.mEnqueuedPaint.setAlpha(ALPHA_GONE);
 
-                AnimatorSet localAnimation = imgAnimIn.clone();
-                localAnimation.start();
+                v.updateContentBounds();
+                v.invalidate();
             }
         });
 
-        localAnimation.start();
-
-        if(!drawerState.isDrawerClosed()) closeDrawer();
+        va.addUpdateListener(alphaListener);
+        va.setInterpolator(new DecelerateInterpolator());
+        return va;
     }
 
-    public void setCallback(Callback callback) {this.callback = callback;}
+    //TODO: change method to improve rotation animation
+    private float getDegreeFromScrollY() {
+        final float pos = getScrollY();
+        final float max = DRAWER_OPEN_SIZE;
+        final float posP = pos / max;
 
-    public void toggleDrawer(boolean isUpdateRequired) {
-        toggleDrawer();
+        return (posP) * 180;
     }
 
-    private void openDrawer() {
-        Animator localAnimator = openDrawer.clone();
-        localAnimator.start();
+    private int getFlingVelocity(double d) {
+        final double decelMinusOne = DECELERATION_RATE - 1.0;
+        final double l = (decelMinusOne * Math.log(d / (getDefaultFriction() * PHYSICAL_COEFF))) / DECELERATION_RATE;
+        return (int)Math.abs((getDefaultFriction() * PHYSICAL_COEFF * Math.exp(l))/INFLEXION);
     }
 
-    private void closeDrawer() {
-        Animator localAnimator = closeDrawer.clone();
-        localAnimator.start();
+    private int adjustVelocity(int v) {
+        final double pos = getScrollY();
+        final double max = DRAWER_OPEN_SIZE;
+        final double posP = pos / max;
+
+        if(Math.abs(v) < getMinFling()) {
+            return posP > 0.5 ? getFlingVelocity(max - pos) : -getFlingVelocity(pos);
+        } else {return v < 0 ? getFlingVelocity(max - pos) : -getFlingVelocity(pos);}
     }
 
-    private void snapBack(double posY, double maxY) {
-        Log.v("snap", "snap back");
-        double percentage = posY / maxY;
+    private void updateModel() {
+        Model m = mDisplayedModel;
+        if(m != null) {
+            mEnqueuedBitmap = BitmapFactory.decodeResource(getContext().getResources(), m.getImgResource());
+            mEnqueuedName = m.getModelName();
 
-        if(percentage > 0.5) {
-            ValueAnimator localAnimator = openDrawer.clone();
-            localAnimator.setIntValues(translateY, MetricCalcs.dpToPixels(MAX_TRANS_Y));
-            localAnimator.start();
-        } else {
-            ValueAnimator localAnimator = closeDrawer.clone();
-            localAnimator.setIntValues(translateY, 0);
-            localAnimator.start();
+            mEnqueuedLayout = getTextLayout(mEnqueuedName, mEnqueuedTextPaint, SCREEN_WIDTH, ALIGN_CENTER);
+            mTextHeight = mEnqueuedLayout.getHeight();
+
+            getModelChangeAnim(this).start();
         }
     }
 
-    private void toggleDrawer() {
-        if(drawerState.isDrawerClosed()) openDrawer();
-        else closeDrawer();
-    }
-    private void updateContentBounds() {
-        if(callback != null) callback.passAnimationValue(MetricCalcs.dpToPixels(MAX_TRANS_Y) - translateY);
+    @Override
+    protected void updateContentBounds() {
+        if(mCallback != null) mCallback.passAnimationValue(DRAWER_OPEN_SIZE - getScrollY());
 
-        if(whiteBgBounds != null) {
-            whiteBgBounds.top = MetricCalcs.getStatusBarHeight();
-            whiteBgBounds.bottom = screenHeight - translateY;
+        if(mTextBgBounds != null) {
+            mTextBgBounds.top = getTitleBarTop();
+            mTextBgBounds.bottom = getTitleBarBtm();
         }
 
-        if(imgBounds != null) {
-            imgBounds.set(
-                    imgLeft + translateX,
-                    imgTop - (int)(translateY * 0.5),
-                    imgLeft + imageWidth + translateX,
-                    (imgTop + imageHeight) - (int)(translateY * 0.5)
+        if(mTitleOrigin != null) {
+            int halfHeight = (int)(mTextHeight / 2 + 0.5f);
+            mTitleOrigin.y = AB_HEIGHT + halfHeight + getScrollY();
+        }
+
+        if(mTopShadow != null) {
+            mTopShadow.setBounds(
+                    mTopShadowBounds.left,
+                    mTopShadowBounds.top + getScrollY(),
+                    mTopShadowBounds.right,
+                    mTopShadowBounds.bottom + getScrollY()
             );
         }
 
-        if(imgMask != null) {
-            imgMask.set(
-                    imgLeft + translateX,
-                    (imgTop - translateY) <= actionBarHeight ? actionBarHeight : imgTop - translateY,
-                    imgLeft + imageWidth + translateX,
-                    (imgTop + imageHeight) - translateY
+        int y = getImageTop() + (int)(getScrollY() * 0.5 + 0.5f);
+        if(mImageOrigin != null) mImageOrigin.y = y;
+
+        if(mImgMask != null) {
+            mImgMask.top = getBgTop();
+        }
+
+        if(mBtmShadow != null) {
+            mBtmShadow.setBounds(
+                    mBtmShadowBounds.left,
+                    mBtmShadowBounds.top + getScrollY(),
+                    mBtmShadowBounds.right,
+                    mBtmShadowBounds.bottom + getScrollY()
             );
         }
-
-        if(onBtmShadowBounds != null) {
-            onBtmShadowBounds.top = (onBtmImgShadowTop) - translateY;
-            onBtmShadowBounds.bottom = (onBtmImgShadowTop + onBtmShadowHeight) - translateY;
-
-            onBtmShadowDrawable.setBounds(onBtmShadowBounds);
-        }
     }
 
-    private int desiredWidth() {return MetricCalcs.getScreenWidth();}
-    private int desiredHeight() {return MetricCalcs.getScreenHeight() - MetricCalcs.getActionBarSize(getContext()) - translateY;}
+    /**Private method that returns desired width of this view**/
+    @Override
+    protected int getDesiredWidth() {return SCREEN_WIDTH;}
+    /**Private method that returns desired height of this view**/
+    @Override
+    protected int getDesiredHeight() {return SCREEN_HEIGHT;}
 
-    class CustomGestureDetector extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public boolean onDown(MotionEvent e) {
-            if(closeDrawer.isRunning()) closeDrawer.cancel();
-            if(openDrawer.isRunning()) openDrawer.cancel();
+    private int getTouchSlop() {return ViewConfiguration.get(getContext()).getScaledTouchSlop();}
+    private int getMinFling() {return ViewConfiguration.get(getContext()).getScaledMinimumFlingVelocity();}
+    private float getDefaultFriction() {return ViewConfiguration.getScrollFriction();}
+    private float getCustomFriction() {return getDefaultFriction() * 0.66f;}
 
-            return whiteBgBounds.contains((int)e.getX(), (int)e.getY());
-        }
+    private int getImageLeft() {return (int)((SCREEN_WIDTH - DRAWER_IMAGE_HEIGHT) / 2 + 0.5f);}
+    private int getImageTop() {return SCREEN_HEIGHT - DRAWER_IMAGE_WIDTH;}
 
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            Log.d("", "scrolling");
-            translateY += distanceY;
+    private int getTitleBarTop() {return AB_HEIGHT + getScrollY();}
+    private int getTitleBarBtm() {return getTitleBarTop() + AB_HEIGHT;}
 
-            if(translateY < 0) translateY = 0;
-            else if(translateY > MetricCalcs.dpToPixels(MAX_TRANS_Y)) translateY = MetricCalcs.dpToPixels(MAX_TRANS_Y);
-            else {
-                updateContentBounds();
-                invalidate();
-            }
-
-            return true;
-        }
-
-        @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            if(velocityY > 200) {
-                ValueAnimator localAnimator = closeDrawer.clone();
-                localAnimator.setIntValues(translateY, 0);
-                localAnimator.start();
-            }
-
-            if(velocityY < -200) {
-                ValueAnimator localAnimator = openDrawer.clone();
-                localAnimator.setIntValues(translateY, MetricCalcs.dpToPixels(MAX_TRANS_Y));
-                localAnimator.start();
-            }
-
-            return true;
-        }
-    }
-
-    private class DrawerState {
-        boolean drawerClosed = true;
-
-        void setDrawerStateClosed(boolean closed) {drawerClosed = closed;}
-        boolean isDrawerClosed() {return drawerClosed;}
-    }
+    private int getBgTop() {return getTitleBarBtm();}
 
     public interface Callback {
+        void passMotionEvent(MotionEvent event);
         void passAnimationValue(int inverseValue);
     }
-}
-//    private static TimeInterpolator DECELERATE = new DecelerateInterpolator();
-//    private static TimeInterpolator ACCEL_DECEL = new AccelerateDecelerateInterpolator();
-//
-//    private static final int LEFT = 100;
-//    private static final int RIGHT = 200;
-//    private static final int MAX_TRANS_Y = 300;
-//    private static final int MAX_SHIFT = 5;
-//
-//    private static final int MIN_ALPHA = 0;
-//    private static final int MAX_ALPHA = 255;
-//
-//    //private static final int IMG_HEIGHT = 250;
-//    private static final int IMG_HEIGHT = 500;
-//    private static final int IMG_WIDTH = 350;
-//
-//    private static final int ON_BTM_IMG_SHDW_SIZE = 8;
-//    private static final int ON_TOP_IMG_SHDW_SIZE = 5;
-//
-//    private int imageHeight = MetricCalcs.dpToPixels(IMG_HEIGHT);
-//    private int imageWidth = MetricCalcs.dpToPixels(IMG_WIDTH);
-//
-//    private Paint whiteBgPaint;
-//    private Paint imgAlphaPaint;
-//    private Rect upperWhiteBgBounds, lowerWhiteBgBounds;
-//    private Rect onBtmImgShadowBounds, onTopImgShadowBounds;
-//    private Rect upperImageBounds, lowerImageBounds;
-//    private Rect upperImageMask, lowerImageMask;
-//    private Rect originalUpperImage, originalLowerImage;
-//
-//    private Bitmap upperImageBitmap, lowerImageBitmap;
-//
-//    private ValueAnimator moveBgDown, shiftImgIn;
-//    private ValueAnimator moveBgUp, shiftImgOut;
-//
-//    private AnimatorSet openDrawerAnimation, closeDrawerAnimation;
-//
-//    private GradientDrawable onTopImgShadow, onBtmImgShadow;
-//
-//    private Callback callback;
-//    private DrawerState drawerState;
-//
-//    private int imageShift = 0;
-//    private int drawerTranslateY = 0;
-//
-//    int screenWidth = MetricCalcs.getScreenWidth();
-//    int screenHeight = MetricCalcs.getScreenHeight() - MetricCalcs.getStatusBarHeight();
-//    //int actionBarSize = MetricCalcs.getActionBarSize(getContext()); //TODO: check
-//
-////    int onBtmImgShadowHeight = MetricCalcs.dpToPixels(ON_BTM_IMG_SHDW_SIZE);
-////    int onTopImgShadowHeight = MetricCalcs.dpToPixels(ON_TOP_IMG_SHDW_SIZE);
-//
-//    int onBtmShadowHeight = MetricCalcs.dpToPixels(ON_BTM_IMG_SHDW_SIZE);
-//
-//    int imgLeft = (screenWidth - imageWidth) / 2;
-////    int upperImageTop = screenHeight - actionBarSize - (2 * imageHeight);
-////    int lowerImageTop = upperImageTop + imageHeight;
-//
-//    int imgTop = screenHeight - imageHeight;
-//
-//    //int onTopImgShadowTop = upperImageTop + imageHeight;
-//    //int onBtmImgShadowTop = imgTop - onBtmImgShadowHeight;
-//    int onBtmImgShadowTop = screenHeight;
-//
-//    private Rect whiteBgBounds;
-//    private Rect onBtmShadowBounds;
-//    private Rect imgBounds;
-//    private Rect imgMask;
-//
-//    private ValueAnimator openDrawer, closeDrawer;
-//    //private ValueAnimator shiftImgUp, shiftImgDown;
-//
-//    //private AnimatorSet openDrawerSet, closerDrawerSet;
-//
-//    private Bitmap imgBitmap;
-//    private GradientDrawable onBtmShadowDrawable;
-//
-//    private AnimatorSet imgAnimOut, imgAnimIn;
-//
-//    private GestureDetectorCompat detector;
-//
-//    private int translateY = 0;
-//    private int translateX = 0;
-//    private int alpha = 255;
 
-//    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-//    public ModelInfoView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-//        super(context, attrs, defStyleAttr, defStyleRes);
-//
-//        drawerState = new DrawerState();
-//
-//        setModelImage(R.drawable.srm_225);
-//
-//        whiteBgPaint = new Paint();
-//        whiteBgPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
-//
-//        onTopImgShadowBounds = new Rect(0, onTopImgShadowTop, screenWidth, onTopImgShadowTop + onTopImgShadowHeight);
-//        onBtmImgShadowBounds = new Rect(0, onBtmImgShadowTop, screenWidth, onBtmImgShadowTop + onBtmImgShadowHeight);
-//
-//        onTopImgShadow = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_lower_fade);
-//        onTopImgShadow.setBounds(onTopImgShadowBounds);
-//
-//        onBtmImgShadow = (GradientDrawable)ContextCompat.getDrawable(getContext(), R.drawable.bg_model_info_upper_fade);
-//        onBtmImgShadow.setBounds(onBtmImgShadowBounds);
-//
-//        upperImageBounds = new Rect(imageLeft, upperImageTop, imageLeft + imageWidth, upperImageTop + imageHeight);
-//        lowerImageBounds = new Rect(imageLeft, lowerImageTop, imageLeft + imageWidth, lowerImageTop + imageHeight);
-//
-//        upperImageMask = new Rect(imageLeft, upperImageTop, imageLeft + imageWidth, upperImageTop + imageHeight);
-//        lowerImageMask = new Rect(imageLeft, lowerImageTop, imageLeft + imageWidth, lowerImageTop + imageHeight);
-//
-//        originalUpperImage = new Rect(imageLeft, upperImageTop, imageLeft + imageWidth, upperImageTop + imageHeight);
-//        originalLowerImage =  new Rect(imageLeft, lowerImageTop, imageLeft + imageWidth, lowerImageTop + imageHeight);
-//
-//        upperWhiteBgBounds = new Rect(0, 0, screenWidth, upperImageTop + imageHeight);
-//        lowerWhiteBgBounds = new Rect(0, lowerImageTop, screenWidth, lowerImageTop + imageHeight);
-//
-//        moveBgDown = ValueAnimator.ofInt(0, MetricCalcs.dpToPixels(MAX_TRANS_Y));
-//        shiftImgIn = ValueAnimator.ofInt(0, MetricCalcs.dpToPixels(MAX_SHIFT));
-//
-//        moveBgUp = ValueAnimator.ofInt(MetricCalcs.dpToPixels(MAX_TRANS_Y), 0);
-//        shiftImgOut = ValueAnimator.ofInt(MetricCalcs.dpToPixels(MAX_SHIFT), 0);
-//
-//        moveBgDown.setInterpolator(DECELERATE);
-//        moveBgUp.setInterpolator(ACCEL_DECEL);
-//
-//        moveBgDown.setDuration(250L);
-//        shiftImgIn.setDuration(200L);
-//        shiftImgIn.setStartDelay(100L);
-//
-//        moveBgUp.setDuration(250L);
-//        shiftImgOut.setDuration(200L);
-//        shiftImgOut.setStartDelay(100L);
-//
-//        ValueAnimator.AnimatorUpdateListener translateYListener = new ValueAnimator.AnimatorUpdateListener() {
-//            @Override
-//            public void onAnimationUpdate(ValueAnimator animation) {
-//                drawerTranslateY = (int)animation.getAnimatedValue();
-//
-//                updateContentBounds();
-//                invalidate();
-//            }
-//        };
-//
-//        ValueAnimator.AnimatorUpdateListener imgShiftListener = new ValueAnimator.AnimatorUpdateListener() {
-//            @Override
-//            public void onAnimationUpdate(ValueAnimator animation) {
-//                imageShift = (int)animation.getAnimatedValue();
-//
-//                updateContentBounds();
-//                invalidate();
-//            }
-//        };
-//
-//        moveBgDown.addUpdateListener(translateYListener);
-//        moveBgUp.addUpdateListener(translateYListener);
-//
-//        shiftImgIn.addUpdateListener(imgShiftListener);
-//        shiftImgOut.addUpdateListener(imgShiftListener);
-//
-//        openDrawerAnimation = new AnimatorSet();
-//        openDrawerAnimation.play(moveBgDown).with(shiftImgIn);
-//        //openDrawerAnimation.setStartDelay(100L);
-//        openDrawerAnimation.addListener(new AnimatorListenerAdapter() {
-//            @Override
-//            public void onAnimationEnd(Animator animation) {
-//                super.onAnimationEnd(animation);
-//
-//                drawerState.setDrawerStateClosed(false);
-//                callback.restoreListeners();
-//            }
-//        });
-//
-//        closeDrawerAnimation = new AnimatorSet();
-//        closeDrawerAnimation.play(moveBgUp).with(shiftImgOut);
-//        closeDrawerAnimation.addListener(new AnimatorListenerAdapter() {
-//            @Override
-//            public void onAnimationEnd(Animator animation) {
-//                super.onAnimationEnd(animation);
-//
-//                drawerState.setDrawerStateClosed(true);
-//                callback.updateRecycler();
-//            }
-//        });
-//
-//        updateContentBounds();
-//    }
-//
-//    @Override
-//    public boolean onTouchEvent(MotionEvent event) {
-//        return drawerState.isDrawerClosed();
-//    }
-//
-//    @Override
-//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//
-//        int resolvedWidth = View.resolveSize(desiredWidth(), widthMeasureSpec);
-//        int resolvedHeight = View.resolveSize(desiredHeight(), heightMeasureSpec);
-//
-//        setMeasuredDimension(resolvedWidth, resolvedHeight);
-//    }
-//
-//    @Override
-//    protected void onDraw(Canvas canvas) {
-//        if(onTopImgShadow != null) onTopImgShadow.draw(canvas);
-//        if(onBtmImgShadow != null) onBtmImgShadow.draw(canvas);
-//
-//        if(upperWhiteBgBounds != null) canvas.drawRect(upperWhiteBgBounds, whiteBgPaint);
-//        if(lowerWhiteBgBounds != null) canvas.drawRect(lowerWhiteBgBounds, whiteBgPaint);
-//
-//        if(upperImageBounds != null && upperImageBitmap != null) {
-//            if(upperImageMask != null) canvas.clipRect(upperImageMask, Region.Op.REPLACE);
-//            canvas.drawBitmap(upperImageBitmap, upperImageBounds.left, upperImageBounds.top, null);
-//        }
-//
-//        if(lowerImageBounds != null && lowerImageBitmap != null) {
-//            if(lowerImageMask != null) canvas.clipRect(lowerImageMask, Region.Op.REPLACE);
-//            canvas.drawBitmap(lowerImageBitmap, lowerImageBounds.left, lowerImageBounds.top, null);
-//        }
-//    }
-//
-//    private void setModelImage(int resource) {
-//        upperImageBitmap = ModelInfoView.splitImageBitmap(getContext(), resource)[0];
-//        lowerImageBitmap = ModelInfoView.splitImageBitmap(getContext(), resource)[1];
-//    }
-//
-//    public void updateModelImage(int resource) {
-//        setModelImage(resource);
-//
-//        updateContentBounds();
-//        invalidate();
-//
-//        if(!drawerState.isDrawerClosed()) closeDrawer();
-//        else callback.updateRecycler();
-//    }
-//
-//    public void setCallback(Callback callback) {this.callback = callback;}
-//
-//    public void toggleDrawer(boolean isUpdateRequired) {
-//        if(isUpdateRequired) {
-//            if(drawerState.isDrawerClosed()) callback.updateRecycler();
-//            else closeDrawer();
-//        } else {
-//            toggleDrawer();
-//        }
-//    }
-//
-//    private void openDrawer() {
-//        AnimatorSet localAnimator = openDrawerAnimation.clone();
-//        localAnimator.start();
-//        callback.animateRecyclerUp();
-//    }
-//
-//    private void closeDrawer() {
-//        AnimatorSet localAnimator = closeDrawerAnimation.clone();
-//        localAnimator.start();
-//        callback.animateRecyclerDown();
-//    }
-//
-//    private void toggleDrawer() {
-//        if(drawerState.isDrawerClosed()) openDrawer();
-//        else closeDrawer();
-//    }
-//    private void updateContentBounds() {
-//        if(onBtmImgShadowBounds != null) {
-//            onBtmImgShadowBounds.top = onBtmImgShadowTop + drawerTranslateY;
-//            onBtmImgShadowBounds.bottom = onBtmImgShadowTop + onBtmImgShadowHeight + drawerTranslateY;
-//
-//            onBtmImgShadow.setBounds(onBtmImgShadowBounds);
-//        }
-//
-//        if(lowerWhiteBgBounds != null) {
-//            lowerWhiteBgBounds.top = originalLowerImage.top + drawerTranslateY;
-//            lowerWhiteBgBounds.bottom = originalLowerImage.bottom + drawerTranslateY;
-//        }
-//
-//        if(upperImageBounds != null) {
-//            upperImageBounds.top = originalUpperImage.top + imageShift;
-//            upperImageBounds.bottom = originalUpperImage.bottom + imageShift;
-//        }
-//
-//        if(lowerImageBounds != null) {
-//            lowerImageBounds.top = originalLowerImage.top + drawerTranslateY - imageShift;
-//            lowerImageBounds.bottom = originalLowerImage.bottom + drawerTranslateY - imageShift;
-//        }
-//
-//        if(lowerImageMask != null) {
-//            lowerImageMask.top = originalLowerImage.top + drawerTranslateY;
-//            lowerImageMask.bottom = originalLowerImage.bottom + drawerTranslateY;
-//        }
-//    }
-//
-//    private int desiredWidth() {
-//        return MetricCalcs.getScreenWidth();
-//    }
-//
-//    private int desiredHeight() {
-//        int upperBgHeight;
-//        if(upperWhiteBgBounds == null) upperBgHeight = 0;
-//        else upperBgHeight = upperWhiteBgBounds.height();
-//
-//        int lowerBgHeight;
-//        if(lowerWhiteBgBounds == null) lowerBgHeight = 0;
-//        else lowerBgHeight = lowerWhiteBgBounds.height();
-//
-//        return upperBgHeight + lowerBgHeight;
-//    }
-//
-//    private static Drawable sliceImageBitmap(Context context, Bitmap bitmap, int imgOffset) {
-//        return new BitmapDrawable(context.getResources(), Bitmap.createBitmap(bitmap, 0, imgOffset, bitmap.getWidth(), bitmap.getHeight() - imgOffset));
-//    }
-//
-//    private static Drawable[] splitImageDrawable(Context context) {
-//        Drawable[] splitImages = new Drawable[2];
-//        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.srm_225);
-//        int splitYPos = bitmap.getHeight() / 2;
-//
-//        splitImages[0] = new BitmapDrawable(context.getResources(), Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos));
-//        splitImages[1] = new BitmapDrawable(context.getResources(), Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos));
-//
-//        return splitImages;
-//    }
-//
-//    private static Bitmap[] splitImageBitmap(Context context, int drawableResource) {
-//        Bitmap[] bitmapArray = new Bitmap[2];
-//        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), drawableResource);
-//        int splitYPos = bitmap.getHeight() / 2;
-//
-//        bitmapArray[0] = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos);
-//        bitmapArray[1] = Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos);
-//
-//        return bitmapArray;
-//    }
-//
-//    private Drawable[] splitImageDrawable() {
-//        Drawable[] splitImages = new Drawable[2];
-//        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.srm_225);
-//        int splitYPos = bitmap.getHeight() / 2;
-//
-//        splitImages[0] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos));
-//        splitImages[1] = new BitmapDrawable(getResources(), Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos));
-//
-//        return splitImages;
-//    }
-//
-//    private Bitmap[] splitImageBitmap() {
-//        Bitmap[] bitmapArray = new Bitmap[2];
-//        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.srm_225);
-//        int splitYPos = bitmap.getHeight() / 2;
-//
-//        bitmapArray[0] = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), splitYPos);
-//        bitmapArray[1] = Bitmap.createBitmap(bitmap, 0, splitYPos, bitmap.getWidth(), splitYPos);
-//
-//        return bitmapArray;
-//    }
-//
-//    private void moveImageLeftAnim() {
-////        Drawable[] drawables = splitImageDrawable();
-//
-//    }
-//
-//    private void moveImageRightAnim() {
-//
-//    }
-//
-//    public void updateRecycler(String modelName, List<Card> cardList) {
-//    }
-//
-//    private void swipeModel(int direction) {
-//        //TODO: change models when button is clicked or image is swiped
-//        //TODO: will close model image tray
-//        //TODO: fires changeModelImage method
-//        switch(direction) {
-//            case LEFT: break;
-//            case RIGHT: break;
-//        }
-//    }
-//
-//    private class DrawerState {
-//        boolean drawerClosed = true;
-//
-//        void setDrawerStateClosed(boolean closed) {drawerClosed = closed;}
-//        boolean isDrawerClosed() {return drawerClosed;}
-//    }
-//
-//    public interface Callback {
-//        boolean updateRecycler();
-//        void nullifyListeners();
-//        void cancelAnimation();
-//        void restoreListeners();
-//        void animateRecyclerUp();
-//        void animateRecyclerDown();
-//    }
-//}
+    static class SavedState extends BaseSavedState {
+        int savedRes;
+        String savedName;
+        String savedSerial;
+
+        SavedState(Parcel source) {
+            super(source);
+
+            savedRes = source.readInt();
+            savedName = source.readString();
+            savedSerial = source.readString();
+        }
+
+        SavedState(Parcelable superState) {super(superState);}
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+
+            savedRes = out.readInt();
+            savedName = out.readString();
+            savedSerial = out.readString();
+        }
+
+        static final Parcelable.Creator<SavedState> CREATOR =
+                new Parcelable.Creator<SavedState>() {
+                    @Override
+                    public SavedState createFromParcel(Parcel source) {return new SavedState(source);}
+
+                    @Override
+                    public SavedState[] newArray(int size) {return new SavedState[size];}
+                };
+    }
+
+    /**Runnable class to assist with scrolling. Since this is a view and not a viewgroup,
+     * View.computeScroll is ignored. Instead, scrolling is computed within this runnable class**/
+    class FlingRunnable implements Runnable {
+        private final View mView;
+        private final OverScroller mScroller;
+        private int mPrevY = 0;
+        private boolean newModelFlag = false;
+
+        FlingRunnable(View v) {
+            mScroller = new OverScroller(getContext());
+            mView = v;
+        }
+
+        void flingY(int posY, int vY) {
+            mScroller.fling(
+                    0, posY,
+                    0, vY,
+                    0, 0,
+                    0, DRAWER_OPEN_SIZE
+            );
+
+            mPrevY = posY;
+            postInView();
+        }
+
+        public void run() {
+            if(mScroller.computeScrollOffset()) {
+                int currY = mScroller.getCurrY();
+
+                if (currY != mPrevY) {
+                    getView().scrollBy(0, currY - mPrevY);
+                    mPrevY = currY;
+                }
+
+                postInView();
+            } else {
+                if(newModelFlag) {
+                    updateModel();
+                    mScroller.setFriction(getDefaultFriction());
+                    newModelFlag = false;
+                }
+            }
+        }
+
+        void postInView() {getView().post(this);}
+        View getView() {return mView;}
+        boolean isFlinging() {return !mScroller.isFinished();}
+        void abortIfFlingPersists() {if(isFlinging()) mScroller.abortAnimation();}
+
+        void raiseNewModelFlag() {
+            mScroller.setFriction(getCustomFriction());
+            newModelFlag = true;
+        }
+    }
+}

@@ -1,59 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_marginTop="?attr/actionBarSize"
-    android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingTop="?attr/actionBarSize"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/contactUs_recycler"
+    android:layout_height="match_parent"
+    android:background="@color/bg_list">
+    <ListView
+        android:id="@+id/contact_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-</LinearLayout>
-<!--<TextView xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--android:id="@+id/contact_text"-->
-    <!--android:padding="10dp"-->
-    <!--android:layout_marginTop="?attr/actionBarSize"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"/>-->
-<!--<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content">-->
-    <!--<LinearLayout-->
-        <!--android:layout_marginTop="?attr/actionBarSize"-->
-        <!--android:orientation="vertical"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:padding="10dp">-->
-        <!--<widget.CardDivider-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--app:dividerTitle="@string/assistance_equipment"-->
-            <!--app:dividerSubtitle="@string/echo_address"/>-->
-        <!--<widget.CardDivider-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--app:dividerTitle="@string/cordless_info"-->
-            <!--app:dividerSubtitle="Touch here"/>-->
-        <!--<widget.CardDivider-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--app:dividerTitle="@string/echo_chat"-->
-            <!--app:dividerSubtitle="@string/chat_URL"/>-->
-        <!--<widget.CardDivider-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--app:dividerTitle="@string/website_info"-->
-            <!--app:dividerSubtitle="@string/echo_URL"/>-->
-        <!--<widget.CardDivider-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--app:dividerTitle="@string/app_feedback"-->
-            <!--app:dividerSubtitle="@string/fedback_email"/>-->
-    <!--</LinearLayout>-->
-<!--</ScrollView>-->
-<!--<ListView xmlns:android="http://schemas.android.com/apk/res/android"-->
-    <!--android:id="@+id/contactUs_list"-->
-    <!--android:layout_marginTop="?attr/actionBarSize"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"/>-->
+        android:layout_height="wrap_content"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="0dp"/>
+</FrameLayout>

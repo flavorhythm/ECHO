@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <widget.ScrollingHeaderView
+        android:id="@+id/viewer_info_header"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <!--TODO: need to create a custom view to display scrollable text. TextViews below are placeholders-->
+    <TextView
+        android:id="@+id/viewer_info_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/standard_padding"/>
+    <TextView
+        android:id="@+id/viewer_info_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/standard_padding"
+        android:layout_below="@id/viewer_info_title"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/standard_padding"
+        android:layout_below="@id/viewer_info_subtitle"/>
+</RelativeLayout>

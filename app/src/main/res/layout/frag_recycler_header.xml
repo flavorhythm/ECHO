@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--TODO: add context attributes to all fragment XML.... potentially others as well-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/recycler_header_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!--<ImageView-->
+        <!--android:id="@+id/home_header"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:scaleType="centerCrop"-->
+        <!--android:src="@drawable/drawer_header"/>-->
+    <widget.ScrollingHeaderView
+        android:id="@+id/recycler_header_bg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <!--<View-->
+        <!--android:id="@+id/home_image_overlay"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:background="?attr/colorPrimary" />-->
+    <!--<View-->
+        <!--android:id="@+id/home_background"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:background="@color/bg_list" />-->
+    <com.github.ksoichiro.android.observablescrollview.ObservableRecyclerView
+        android:id="@+id/recycler_header_recycler"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:scrollbars="none" />
+</FrameLayout>

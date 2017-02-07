@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="ChipView">
-        <attr name="chipText" format="string"/>
-    </declare-styleable>
-    <declare-styleable name="CardDivider">
-        <attr name="diableSubtitle" format="boolean"/>
-        <attr name="dividerTitle" format="string"/>
-        <attr name="dividerSubtitle" format="string"/>
+    <declare-styleable name="DividerView">
+        <attr name="disableSubtitle" format="boolean"/>
         <attr name="dividerColor" format="color"/>
     </declare-styleable>
 </resources>
